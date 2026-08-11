@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="Gere e leia QR Codes sem que nada saia do seu navegador. Processamento local, sem servidores, rastreadores ou cadastro — e funciona offline. Projeto open source por Gustavo Viana.">
+<meta name="author" content="Gustavo Viana">
+<link rel="canonical" href="https://qr.tools.grviana.com.br/">
+
+<!-- Open Graph / preview de compartilhamento -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="QR Utils">
+<meta property="og:title" content="QR Utils — QR Codes que não saem do seu navegador">
+<meta property="og:description" content="Gere e leia QR Codes sem que nada saia do seu navegador. Processamento local, sem servidores nem rastreadores — e funciona offline.">
+<meta property="og:url" content="https://qr.tools.grviana.com.br/">
+<meta property="og:image" content="https://qr.tools.grviana.com.br/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="QR Utils — QR Codes que não saem do seu navegador">
+<meta name="twitter:description" content="Gere e leia QR Codes sem que nada saia do seu navegador. Processamento local, sem servidores nem rastreadores.">
+<meta name="twitter:image" content="https://qr.tools.grviana.com.br/og-image.png">
+
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>QR Utils — Gerador e leitor de QR Code</title>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+  <header>
+    <div class="logo">◱</div>
+    <div>
+      <h1>QR Utils</h1>
+      <small>QR Codes sem que nada saia do navegador</small>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button id="tabGen" class="active" onclick="showView('gen')">Gerar</button>
+    <button id="tabRead" onclick="showView('read')">Ler</button>
+    <button id="tabAbout" onclick="showView('about')">Sobre</button>
+  </div>
+
+  <main>
+    <!-- ============ GERAR ============ -->
+    <section id="view-gen" class="view active">
+      <div class="card">
+        <label class="fld">Tipo de conteúdo</label>
+        <div class="chips" id="typeChips">
+          <span class="chip active" data-type="text" onclick="setType('text')">Texto</span>
+          <span class="chip" data-type="link" onclick="setType('link')">Link</span>
+          <span class="chip" data-type="wifi" onclick="setType('wifi')">Wi-Fi</span>
+          <span class="chip" data-type="email" onclick="setType('email')">E-mail</span>
+          <span class="chip" data-type="tel" onclick="setType('tel')">Telefone</span>
+          <span class="chip" data-type="sms" onclick="setType('sms')">SMS</span>
+        </div>
+
+        <div style="margin-top:14px">
+          <!-- Texto -->
+          <div class="fgroup" data-fields="text">
+            <label class="fld" for="f_text">Texto ou conteúdo</label>
+            <textarea id="f_text" placeholder="Digite qualquer texto..."></textarea>
+          </div>
+          <!-- Link -->
+          <div class="fgroup" data-fields="link" hidden>
+            <label class="fld" for="f_link">Endereço (URL)</label>
+            <input type="text" id="f_link" placeholder="exemplo.com" inputmode="url">
+          </div>
+          <!-- Wi-Fi -->
+          <div class="fgroup" data-fields="wifi" hidden>
+            <label class="fld" for="f_ssid">Nome da rede (SSID)</label>
+            <input type="text" id="f_ssid" placeholder="MinhaRede">
+            <label class="fld" for="f_pass" style="margin-top:12px">Senha</label>
+            <input type="text" id="f_pass" placeholder="senha123">
+            <div class="row" style="margin-top:12px">
+              <div>
+                <label class="fld" for="f_sec">Segurança</label>
+                <select id="f_sec" onchange="toggleWifiPass()">
+                  <option value="WPA">WPA/WPA2</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">Nenhuma (aberta)</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:flex-end;padding-bottom:11px">
+                <label class="check"><input type="checkbox" id="f_hidden"> Rede oculta</label>
+              </div>
+            </div>
+          </div>
+          <!-- E-mail -->
+          <div class="fgroup" data-fields="email" hidden>
+            <label class="fld" for="f_email">Destinatário</label>
+            <input type="text" id="f_email" placeholder="email@exemplo.com" inputmode="email">
+            <label class="fld" for="f_subject" style="margin-top:12px">Assunto (opcional)</label>
+            <input type="text" id="f_subject" placeholder="Assunto">
+            <label class="fld" for="f_ebody" style="margin-top:12px">Mensagem (opcional)</label>
+            <textarea id="f_ebody" placeholder="Mensagem..."></textarea>
+          </div>
+          <!-- Telefone -->
+          <div class="fgroup" data-fields="tel" hidden>
+            <label class="fld" for="f_tel">Número de telefone</label>
+            <input type="text" id="f_tel" placeholder="+55 11 99999-9999" inputmode="tel">
+          </div>
+          <!-- SMS -->
+          <div class="fgroup" data-fields="sms" hidden>
+            <label class="fld" for="f_smsnum">Número</label>
+            <input type="text" id="f_smsnum" placeholder="+55 11 99999-9999" inputmode="tel">
+            <label class="fld" for="f_smsmsg" style="margin-top:12px">Mensagem (opcional)</label>
+            <textarea id="f_smsmsg" placeholder="Mensagem..."></textarea>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:14px">
+          <div>
+            <label class="fld" for="genEcl">Correção de erro</label>
+            <select id="genEcl">
+              <option value="LOW">Baixa (mais dados)</option>
+              <option value="MEDIUM" selected>Média</option>
+              <option value="QUARTILE">Alta</option>
+              <option value="HIGH">Máxima (mais robusto)</option>
+            </select>
+          </div>
+          <div>
+            <label class="fld" for="genScale">Tamanho</label>
+            <select id="genScale">
+              <option value="6">Pequeno</option>
+              <option value="10" selected>Médio</option>
+              <option value="16">Grande</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top:14px" class="grid2">
+          <button class="btn ghost" onclick="showFormatted()">Ver texto formatado</button>
+          <button class="btn" onclick="doGenerate()">Gerar QR Code</button>
+        </div>
+        <div id="genPreview" class="preview" hidden>
+          <span class="preview-label">Texto que será codificado</span>
+          <code id="genPreviewText"></code>
+        </div>
+        <div id="genErr" class="err"></div>
+      </div>
+
+      <div class="card" id="qrCard" style="display:none">
+        <div class="qr-wrap"><canvas id="qrCanvas" onclick="openModal()" title="Toque para ampliar"></canvas></div>
+        <div class="hint" style="text-align:center;margin-top:0">Toque no QR para ampliar</div>
+        <div class="grid2">
+          <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>
+          <button class="btn ok" onclick="shareQR()">Compartilhar imagem</button>
+        </div>
+        <button class="btn ghost" style="margin-top:10px" onclick="shareLink()">Compartilhar link do QR</button>
+        <div class="hint" id="qrMeta"></div>
+      </div>
+    </section>
+
+    <!-- ============ LER ============ -->
+    <section id="view-read" class="view">
+      <div class="card">
+        <div class="scan-box" id="scanBox">
+          <video id="video" playsinline muted></video>
+          <div class="reticle"></div>
+        </div>
+
+        <div class="stack">
+          <button class="btn" id="camBtn" onclick="toggleCamera()">Escanear com a câmera</button>
+          <button class="btn ghost" onclick="document.getElementById('fileInput').click()">Ler de uma imagem</button>
+          <input type="file" id="fileInput" accept="image/*" hidden onchange="readFromFile(event)">
+        </div>
+        <div id="readErr" class="err"></div>
+        <div class="hint" id="readHint"></div>
+      </div>
+
+      <div class="card" id="resultCard" style="display:none">
+        <label class="fld">Resultado</label>
+        <div class="result" id="resultText"></div>
+        <div class="grid2">
+          <button class="btn ghost" onclick="copyResult()">Copiar</button>
+          <button class="btn ok" id="openBtn" onclick="openResult()">Abrir link</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SOBRE ============ -->
+    <section id="view-about" class="view">
+      <div class="card">
+        <div class="about-head">
+          <div class="logo-lg">◱</div>
+          <div>
+            <h2>QR Utils</h2>
+            <p class="muted">Gere e leia QR Codes sem que nada saia do seu navegador. Todo o processamento acontece no seu dispositivo — sem servidores, sem rastreadores, sem cadastro. E como toda a lógica está embutida em um único arquivo, você pode abrir o código e conferir. Ainda por cima, funciona offline.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <label class="fld">Privacidade</label>
+        <p class="muted priv-p">
+          Não coletamos dados: tudo é processado no seu dispositivo, sem cookies nem rastreadores.
+        </p>
+        <a href="#" onclick="showView('privacy');return false;" style="display:inline-block;margin-top:10px;font-size:13.5px;font-weight:600">
+          Ver política de privacidade →
+        </a>
+      </div>
+
+      <div class="card" id="aboutInstallCard">
+        <label class="fld">Instalar como app</label>
+        <p class="muted" style="margin:0 0 12px;font-size:13.5px;line-height:1.5">
+          Adicione o QR Utils à tela inicial para abrir como um aplicativo, em tela cheia e offline.
+        </p>
+        <button class="btn" onclick="promptInstall()">Instalar como app</button>
+        <p class="muted" id="aboutInstallHint" style="margin:10px 0 0;font-size:12px;line-height:1.5"></p>
+      </div>
+
+      <div class="card">
+        <label class="fld">Bibliotecas e créditos</label>
+        <ul class="credits">
+          <li>
+            <div class="credit-name">jsQR <span class="lic">MIT</span></div>
+            <span class="desc">Decodificação (leitura) de QR Code, embutida no app.</span>
+            <a href="https://github.com/cozmo/jsQR" target="_blank" rel="noopener">github.com/cozmo/jsQR</a>
+          </li>
+          <li>
+            <div class="credit-name">QR Code generator · Project Nayuki <span class="lic">MIT</span></div>
+            <span class="desc">Base do algoritmo usado na geração de QR Code.</span>
+            <a href="https://www.nayuki.io/page/qr-code-generator-library" target="_blank" rel="noopener">nayuki.io/page/qr-code-generator-library</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <label class="fld">Projeto</label>
+        <p class="muted" style="margin:0 0 12px;font-size:13.5px;line-height:1.5">
+          Código-fonte, histórico e issues no GitHub.
+        </p>
+        <a class="linkbtn" href="https://github.com/gustavorviana/tools-qrcode" target="_blank" rel="noopener">
+          Ver repositório no GitHub
+        </a>
+        <p class="muted" style="margin:14px 0 0;font-size:12.5px;text-align:center;line-height:1.5">
+          Criado por Gustavo Viana, desenvolvido com
+          <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a> (Anthropic).
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ PRIVACIDADE ============ -->
+    <section id="view-privacy" class="view">
+      <div class="card">
+        <div class="about-head">
+          <div class="logo-lg">🔒</div>
+          <div>
+            <h2>Privacidade</h2>
+            <p class="muted">Feito para funcionar sem coletar seus dados. Aqui está exatamente o que acontece.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <label class="fld">O que acontece no seu dispositivo</label>
+        <ul class="privacy">
+          <li>Gerar e ler QR Codes acontece inteiramente no navegador — nenhum conteúdo é enviado a servidores. Não existe back-end recebendo o que você digita, gera ou lê.</li>
+          <li>Ao ler, a câmera ou a imagem escolhida é processada localmente; nenhum quadro de vídeo ou foto é enviado nem armazenado.</li>
+          <li>O único dado guardado é uma preferência de interface (dispensar o aviso de instalação), via <code>localStorage</code>.</li>
+          <li>Sem cookies, sem analytics e sem rastreadores; nenhum script de terceiros é carregado.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <label class="fld">Links compartilhados</label>
+        <p class="muted priv-p">
+          Ao compartilhar um link de QR, o conteúdo fica dentro do próprio link, depois do <code>#</code>.
+          Esse trecho <b>não</b> é enviado ao servidor — mas fica <b>visível para quem receber o link</b> e
+          para o app por onde você compartilhar (mensageiro, e-mail, etc.). Compartilhe apenas o que você
+          quer que a outra pessoa veja.
+        </p>
+      </div>
+
+      <div class="card">
+        <label class="fld">Hospedagem e transparência</label>
+        <p class="muted priv-p">
+          O site é servido pelo Cloudflare, que pode registrar o endereço IP em logs por segurança e para
+          entregar a página — padrão de qualquer site. Tudo isso é verificável: o código é aberto e a build
+          gera um único arquivo. Confira no
+          <a href="https://github.com/gustavorviana/tools-qrcode" target="_blank" rel="noopener">repositório</a>.
+        </p>
+        <button class="btn ghost" style="margin-top:12px" onclick="showView('about')">Voltar para Sobre</button>
+      </div>
+    </section>
+
+    <!-- ============ VISUALIZAÇÃO DE LINK COMPARTILHADO ============ -->
+    <section id="view-share" class="view">
+      <div class="card">
+        <div class="hint" style="text-align:center;margin:0 0 10px">QR Code compartilhado</div>
+        <div class="qr-wrap"><canvas id="shareCanvas" onclick="openModal()" title="Toque para ampliar"></canvas></div>
+        <div class="hint" style="text-align:center;margin-top:0">Toque no QR para ampliar</div>
+        <label class="fld" style="margin-top:12px">Conteúdo</label>
+        <div class="result" id="shareContent"></div>
+        <div class="grid2" id="shareActions" style="margin-top:12px">
+          <button class="btn ghost" onclick="copyShared()">Copiar</button>
+          <button class="btn ok" id="shareOpenBtn" onclick="openShared()">Abrir link</button>
+        </div>
+        <button class="btn" style="margin-top:10px" onclick="exitShared()">Criar o meu QR Code</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Processamento local — nenhum dado é enviado a servidores. ·
+    <a href="#" onclick="showView('privacy');return false;">Privacidade</a>
+  </footer>
+
+  <!-- Banner de instalação (PWA) -->
+  <div class="install-bar" id="installBar" hidden>
+    <div class="install-text" id="installText"></div>
+    <div class="install-actions">
+      <button class="btn small" id="installBtn" onclick="installApp()">Instalar</button>
+      <button class="install-close" onclick="dismissInstall()" aria-label="Agora não">✕</button>
+    </div>
+  </div>
+
+  <!-- Modal do QR ampliado -->
+  <div class="modal" id="qrModal" hidden>
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-label="QR Code ampliado">
+      <button class="modal-close" onclick="closeModal()" aria-label="Fechar">✕</button>
+      <div class="modal-qr"><canvas id="qrCanvasBig"></canvas></div>
+      <div class="modal-meta" id="qrModalMeta"></div>
+      <div class="grid2">
+        <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>
+        <button class="btn ok" onclick="shareQR()">Compartilhar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>/*__JS__*/</script>
+</body>
+</html>

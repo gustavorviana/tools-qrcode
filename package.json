@@ -1,0 +1,25 @@
+{
+  "name": "tools-qrcode",
+  "version": "1.0.0",
+  "description": "Gerador e leitor de QR Code — processamento local, offline, sem dependências externas em runtime.",
+  "private": true,
+  "type": "module",
+  "author": "Gustavo Viana",
+  "license": "MIT",
+  "homepage": "https://qr.tools.grviana.com.br/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gustavorviana/tools-qrcode.git"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "node build.mjs && npx --yes serve -l 5000 dist",
+    "preview:online": "node tunnel.mjs"
+  },
+  "dependencies": {
+    "jsqr": "1.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  }
+}

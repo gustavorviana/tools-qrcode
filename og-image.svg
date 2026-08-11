@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0f172a"/>
+  <rect width="1200" height="8" fill="#2563eb"/>
+
+  <!-- QR motif -->
+  <g transform="translate(120,175)">
+    <!-- finder superior-esquerdo -->
+    <rect x="0" y="0" width="84" height="84" fill="#ffffff"/>
+    <rect x="14" y="14" width="56" height="56" fill="#0f172a"/>
+    <rect x="28" y="28" width="28" height="28" fill="#ffffff"/>
+    <!-- finder superior-direito -->
+    <rect x="196" y="0" width="84" height="84" fill="#ffffff"/>
+    <rect x="210" y="14" width="56" height="56" fill="#0f172a"/>
+    <rect x="224" y="28" width="28" height="28" fill="#ffffff"/>
+    <!-- finder inferior-esquerdo -->
+    <rect x="0" y="196" width="84" height="84" fill="#ffffff"/>
+    <rect x="14" y="210" width="56" height="56" fill="#0f172a"/>
+    <rect x="28" y="224" width="28" height="28" fill="#ffffff"/>
+    <!-- módulos -->
+    <g fill="#ffffff">
+      <rect x="112" y="0" width="28" height="28"/>
+      <rect x="112" y="56" width="28" height="28"/>
+      <rect x="252" y="56" width="28" height="28"/>
+      <rect x="0" y="112" width="28" height="28"/>
+      <rect x="56" y="112" width="28" height="28"/>
+      <rect x="112" y="112" width="28" height="28"/>
+      <rect x="168" y="112" width="28" height="28"/>
+      <rect x="252" y="112" width="28" height="28"/>
+      <rect x="140" y="140" width="28" height="28"/>
+      <rect x="196" y="168" width="28" height="28"/>
+      <rect x="252" y="196" width="28" height="28"/>
+      <rect x="140" y="252" width="28" height="28"/>
+      <rect x="196" y="252" width="28" height="28"/>
+      <rect x="252" y="252" width="28" height="28"/>
+    </g>
+  </g>
+
+  <!-- Texto -->
+  <text x="470" y="248" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="90" font-weight="700" fill="#ffffff">QR Utils</text>
+  <text x="474" y="316" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="38" fill="#94a3b8">Gere e leia QR Codes sem que nada</text>
+  <text x="474" y="362" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="38" fill="#94a3b8">saia do seu navegador</text>
+  <text x="474" y="416" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="28" fill="#64748b">Sem servidores · sem rastreadores · offline</text>
+  <text x="474" y="474" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="28" font-weight="600" fill="#2563eb">github.com/gustavorviana/tools-qrcode</text>
+</svg>

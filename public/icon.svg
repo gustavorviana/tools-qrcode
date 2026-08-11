@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#0f172a"/>
+  <g fill="#ffffff">
+    <!-- finder top-left -->
+    <path d="M96 96h112v112H96zm28 28v56h56v-56z"/>
+    <!-- finder top-right -->
+    <path d="M304 96h112v112H304zm28 28v56h56v-56z"/>
+    <!-- finder bottom-left -->
+    <path d="M96 304h112v112H96zm28 28v56h56v-56z"/>
+    <!-- data modules -->
+    <rect x="248" y="96" width="28" height="28"/>
+    <rect x="248" y="152" width="28" height="28"/>
+    <rect x="96" y="248" width="28" height="28"/>
+    <rect x="152" y="248" width="28" height="28"/>
+    <rect x="248" y="248" width="28" height="28"/>
+    <rect x="304" y="248" width="28" height="28"/>
+    <rect x="388" y="248" width="28" height="28"/>
+    <rect x="304" y="304" width="28" height="28"/>
+    <rect x="360" y="304" width="28" height="28"/>
+    <rect x="388" y="360" width="28" height="28"/>
+    <rect x="304" y="388" width="28" height="28"/>
+    <rect x="360" y="388" width="28" height="28"/>
+    <rect x="248" y="360" width="28" height="28"/>
+    <rect x="248" y="304" width="28" height="28"/>
+  </g>
+</svg>
