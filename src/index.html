@@ -47,33 +47,37 @@
   <main>
     <!-- ============ GERAR ============ -->
     <section id="view-gen" class="view active">
-      <div class="card">
-        <label class="fld">Tipo de conteúdo</label>
-        <div class="chips" id="typeChips">
-          <span class="chip active" data-type="text" onclick="setType('text')">Texto</span>
-          <span class="chip" data-type="link" onclick="setType('link')">Link</span>
-          <span class="chip" data-type="wifi" onclick="setType('wifi')">Wi-Fi</span>
-          <span class="chip" data-type="email" onclick="setType('email')">E-mail</span>
-          <span class="chip" data-type="tel" onclick="setType('tel')">Telefone</span>
-          <span class="chip" data-type="sms" onclick="setType('sms')">SMS</span>
+      <div class="card step">
+        <div class="step-head"><span class="step-num">1</span> Conteúdo</div>
+        <div class="type-tabs" id="typeChips">
+          <button class="type-tab active" data-type="text" onclick="setType('text')"><span class="tt-ico">📝</span><span>Texto</span></button>
+          <button class="type-tab" data-type="link" onclick="setType('link')"><span class="tt-ico">🔗</span><span>Link</span></button>
+          <button class="type-tab" data-type="wifi" onclick="setType('wifi')"><span class="tt-ico">📶</span><span>Wi-Fi</span></button>
+          <button class="type-tab" data-type="email" onclick="setType('email')"><span class="tt-ico">✉️</span><span>E-mail</span></button>
+          <button class="type-tab" data-type="tel" onclick="setType('tel')"><span class="tt-ico">📞</span><span>Telefone</span></button>
+          <button class="type-tab" data-type="sms" onclick="setType('sms')"><span class="tt-ico">💬</span><span>SMS</span></button>
+          <button class="type-tab" data-type="whatsapp" onclick="setType('whatsapp')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.892c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652a12.062 12.062 0 005.71 1.454h.005c6.582 0 11.946-5.335 11.949-11.893a11.821 11.821 0 00-3.484-8.46"/></svg></span><span>WhatsApp</span></button>
+          <button class="type-tab" data-type="vcard" onclick="setType('vcard')"><span class="tt-ico">👤</span><span>Contato</span></button>
+          <button class="type-tab" data-type="geo" onclick="setType('geo')"><span class="tt-ico">📍</span><span>Local</span></button>
+          <button class="type-tab" data-type="event" onclick="setType('event')"><span class="tt-ico">📅</span><span>Evento</span></button>
         </div>
 
-        <div style="margin-top:14px">
+        <div id="genFields" style="margin-top:14px">
           <!-- Texto -->
           <div class="fgroup" data-fields="text">
-            <label class="fld" for="f_text">Texto ou conteúdo</label>
+            <label class="fld req" for="f_text">Texto ou conteúdo</label>
             <textarea id="f_text" placeholder="Digite qualquer texto..."></textarea>
           </div>
           <!-- Link -->
           <div class="fgroup" data-fields="link" hidden>
-            <label class="fld" for="f_link">Endereço (URL)</label>
+            <label class="fld req" for="f_link">Endereço (URL)</label>
             <input type="text" id="f_link" placeholder="exemplo.com" inputmode="url">
           </div>
           <!-- Wi-Fi -->
           <div class="fgroup" data-fields="wifi" hidden>
-            <label class="fld" for="f_ssid">Nome da rede (SSID)</label>
+            <label class="fld req" for="f_ssid">Nome da rede (SSID)</label>
             <input type="text" id="f_ssid" placeholder="MinhaRede">
-            <label class="fld" for="f_pass" style="margin-top:12px">Senha</label>
+            <label class="fld req" id="lbl_pass" for="f_pass" style="margin-top:12px">Senha</label>
             <input type="text" id="f_pass" placeholder="senha123">
             <div class="row" style="margin-top:12px">
               <div>
@@ -91,7 +95,7 @@
           </div>
           <!-- E-mail -->
           <div class="fgroup" data-fields="email" hidden>
-            <label class="fld" for="f_email">Destinatário</label>
+            <label class="fld req" for="f_email">Destinatário</label>
             <input type="text" id="f_email" placeholder="email@exemplo.com" inputmode="email">
             <label class="fld" for="f_subject" style="margin-top:12px">Assunto (opcional)</label>
             <input type="text" id="f_subject" placeholder="Assunto">
@@ -100,20 +104,101 @@
           </div>
           <!-- Telefone -->
           <div class="fgroup" data-fields="tel" hidden>
-            <label class="fld" for="f_tel">Número de telefone</label>
-            <input type="text" id="f_tel" placeholder="+55 11 99999-9999" inputmode="tel">
+            <label class="fld req" for="f_tel">Número de telefone</label>
+            <input type="text" id="f_tel" placeholder="(11) 99999-9999" inputmode="tel">
           </div>
           <!-- SMS -->
           <div class="fgroup" data-fields="sms" hidden>
-            <label class="fld" for="f_smsnum">Número</label>
-            <input type="text" id="f_smsnum" placeholder="+55 11 99999-9999" inputmode="tel">
+            <label class="fld req" for="f_smsnum">Número</label>
+            <input type="text" id="f_smsnum" placeholder="(11) 99999-9999" inputmode="tel">
             <label class="fld" for="f_smsmsg" style="margin-top:12px">Mensagem (opcional)</label>
             <textarea id="f_smsmsg" placeholder="Mensagem..."></textarea>
           </div>
+          <!-- WhatsApp -->
+          <div class="fgroup" data-fields="whatsapp" hidden>
+            <label class="fld req" for="f_wanum">Número (com código do país)</label>
+            <input type="text" id="f_wanum" placeholder="+55 11 99999-9999" inputmode="tel">
+            <label class="fld" for="f_wamsg" style="margin-top:12px">Mensagem (opcional)</label>
+            <textarea id="f_wamsg" placeholder="Mensagem..."></textarea>
+          </div>
+          <!-- Contato (vCard) -->
+          <div class="fgroup" data-fields="vcard" hidden>
+            <label class="fld req" for="f_vcname">Nome completo</label>
+            <input type="text" id="f_vcname" placeholder="Maria Silva">
+            <label class="fld" for="f_vctel" style="margin-top:12px">Telefone</label>
+            <input type="text" id="f_vctel" placeholder="(11) 99999-9999" inputmode="tel">
+            <label class="fld" for="f_vcemail" style="margin-top:12px">E-mail</label>
+            <input type="text" id="f_vcemail" placeholder="email@exemplo.com" inputmode="email">
+            <div class="row" style="margin-top:12px">
+              <div>
+                <label class="fld" for="f_vcorg">Empresa</label>
+                <input type="text" id="f_vcorg" placeholder="Empresa">
+              </div>
+              <div>
+                <label class="fld" for="f_vctitle">Cargo</label>
+                <input type="text" id="f_vctitle" placeholder="Cargo">
+              </div>
+            </div>
+            <label class="fld" for="f_vcurl" style="margin-top:12px">Site (opcional)</label>
+            <input type="text" id="f_vcurl" placeholder="exemplo.com" inputmode="url">
+          </div>
+          <!-- Localização (geo) -->
+          <div class="fgroup" data-fields="geo" hidden>
+            <div class="row">
+              <div>
+                <label class="fld req" for="f_geolat">Latitude</label>
+                <input type="text" id="f_geolat" placeholder="-23.5505" inputmode="decimal">
+              </div>
+              <div>
+                <label class="fld req" for="f_geolng">Longitude</label>
+                <input type="text" id="f_geolng" placeholder="-46.6333" inputmode="decimal">
+              </div>
+            </div>
+            <button class="btn ghost" style="margin-top:12px" onclick="useCurrentLocation()">Usar localização atual</button>
+            <!-- Aviso antes de carregar o mapa (tiles/busca externos) -->
+            <div class="map-consent" id="mapConsent">
+              <p>O mapa usa o <b>OpenStreetMap</b> (servidor externo) — o único momento em que o app busca algo fora do seu dispositivo. Ele carrega as imagens do mapa e, ao buscar um endereço, <b>envia o texto digitado</b> ao OpenStreetMap. Suas coordenadas em si não são enviadas.</p>
+              <button class="btn ghost" onclick="loadMap()">Escolher no mapa</button>
+            </div>
+            <!-- Busca de endereço (geocodificação via Nominatim/OSM) -->
+            <div class="map-search" id="mapSearch" hidden>
+              <input type="text" id="f_geoquery" placeholder="Buscar endereço ou lugar…">
+              <button class="btn" onclick="searchAddress()">Buscar</button>
+            </div>
+            <!-- Mapa interativo (arraste; o pino no centro marca o ponto) -->
+            <div class="map-wrap" id="mapWrap" hidden>
+              <div class="map-tiles" id="mapTiles"></div>
+              <div class="map-pin">📍</div>
+              <div class="map-zoom">
+                <button type="button" onclick="mapZoom(1)" aria-label="Aproximar">+</button>
+                <button type="button" onclick="mapZoom(-1)" aria-label="Afastar">−</button>
+              </div>
+              <div class="map-attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+            </div>
+            <p class="hint" id="mapHint" style="margin-top:8px" hidden>Arraste o mapa: o pino no centro marca a localização.</p>
+          </div>
+          <!-- Evento (calendário) -->
+          <div class="fgroup" data-fields="event" hidden>
+            <label class="fld req" for="f_evtitle">Título do evento</label>
+            <input type="text" id="f_evtitle" placeholder="Reunião de equipe">
+            <label class="fld" for="f_evloc" style="margin-top:12px">Local (opcional)</label>
+            <input type="text" id="f_evloc" placeholder="Sala 3 / endereço">
+            <div class="row" style="margin-top:12px">
+              <div>
+                <label class="fld req" for="f_evstart">Início</label>
+                <input type="datetime-local" id="f_evstart">
+              </div>
+              <div>
+                <label class="fld" for="f_evend">Fim (opcional)</label>
+                <input type="datetime-local" id="f_evend">
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="row" style="margin-top:14px">
-          <div>
+        <details class="adv">
+          <summary>Opções avançadas</summary>
+          <div class="adv-body">
             <label class="fld" for="genEcl">Correção de erro</label>
             <select id="genEcl">
               <option value="LOW">Baixa (mais dados)</option>
@@ -121,16 +206,9 @@
               <option value="QUARTILE">Alta</option>
               <option value="HIGH">Máxima (mais robusto)</option>
             </select>
+            <p class="hint" style="margin-top:8px">Ao adicionar um logotipo, a correção é elevada automaticamente para manter a leitura.</p>
           </div>
-          <div>
-            <label class="fld" for="genScale">Tamanho</label>
-            <select id="genScale">
-              <option value="6">Pequeno</option>
-              <option value="10" selected>Médio</option>
-              <option value="16">Grande</option>
-            </select>
-          </div>
-        </div>
+        </details>
 
         <div style="margin-top:14px" class="grid2">
           <button class="btn ghost" onclick="showFormatted()">Ver texto formatado</button>
@@ -143,13 +221,112 @@
         <div id="genErr" class="err"></div>
       </div>
 
-      <div class="card" id="qrCard" style="display:none">
-        <div class="qr-wrap"><canvas id="qrCanvas" onclick="openModal()" title="Toque para ampliar"></canvas></div>
+      <!-- ===== Passo 2 — Personalizar (sanfona, fechada por padrão) ===== -->
+      <details class="card step accordion">
+        <summary class="step-head"><span class="step-num">2</span> Personalizar <span class="step-opt">(opcional)</span><span class="acc-chevron" aria-hidden="true">⌄</span></summary>
+        <div class="ctabs" id="custTabs">
+          <button class="ctab active" data-ctab="color" onclick="setCustomTab('color')">🎨 Cor</button>
+          <button class="ctab" data-ctab="shape" onclick="setCustomTab('shape')">◼️ Formas</button>
+          <button class="ctab" data-ctab="logo" onclick="setCustomTab('logo')">🖼️ Logo</button>
+          <button class="ctab" data-ctab="frame" onclick="setCustomTab('frame')">🔲 Moldura</button>
+        </div>
+
+        <!-- Cor -->
+        <div class="cpanel" data-panel="color">
+          <div class="row">
+            <div>
+              <label class="fld" for="c_fg">Cor dos módulos</label>
+              <div class="color-field">
+                <input type="color" id="c_fg" value="#0f172a" oninput="setColor('fg', this.value)">
+                <input type="text" class="hex" id="c_fg_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setHex('fg', this.value)">
+              </div>
+            </div>
+            <div>
+              <label class="fld" for="c_bg">Fundo</label>
+              <div class="color-field">
+                <input type="color" id="c_bg" value="#ffffff" oninput="setColor('bg', this.value)">
+                <input type="text" class="hex" id="c_bg_hex" value="#ffffff" spellcheck="false" maxlength="7" oninput="setHex('bg', this.value)">
+              </div>
+            </div>
+          </div>
+          <div class="swatches" id="colorPresets">
+            <button class="swatch" style="--a:#0f172a;--b:#ffffff" title="Clássico" onclick="applyPreset('#0f172a','#ffffff')"></button>
+            <button class="swatch" style="--a:#1d4ed8;--b:#ffffff" title="Azul" onclick="applyPreset('#1d4ed8','#ffffff')"></button>
+            <button class="swatch" style="--a:#059669;--b:#ffffff" title="Verde" onclick="applyPreset('#059669','#ffffff')"></button>
+            <button class="swatch" style="--a:#7c3aed;--b:#ffffff" title="Roxo" onclick="applyPreset('#7c3aed','#ffffff')"></button>
+            <button class="swatch" style="--a:#db2777;--b:#ffffff" title="Rosa" onclick="applyPreset('#db2777','#ffffff')"></button>
+            <button class="swatch" style="--a:#ffffff;--b:#0f172a" title="Invertido" onclick="applyPreset('#ffffff','#0f172a')"></button>
+          </div>
+        </div>
+
+        <!-- Formas -->
+        <div class="cpanel" data-panel="shape" hidden>
+          <div class="opts" id="shapeOpts">
+            <button class="opt active" data-shape="solid" onclick="setShape('solid')"><span class="opt-ico sl"></span>Contínuo</button>
+            <button class="opt" data-shape="rounded" onclick="setShape('rounded')"><span class="opt-ico rd"></span>Arredondado</button>
+            <button class="opt" data-shape="dots" onclick="setShape('dots')"><span class="opt-ico dt"></span>Pontos</button>
+            <button class="opt" data-shape="classy" onclick="setShape('classy')"><span class="opt-ico cl"></span>Elegante</button>
+          </div>
+          <label class="fld" style="margin-top:12px">Contorno</label>
+          <div class="opts" id="qrShapeOpts">
+            <button class="opt active" data-qrshape="square" onclick="setQrShape('square')">
+              <svg class="frame-ex" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#cbd5e1"/></svg>
+              Quadrado
+            </button>
+            <button class="opt" data-qrshape="circle" onclick="setQrShape('circle')">
+              <svg class="frame-ex" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#cbd5e1"/></svg>
+              Círculo
+            </button>
+          </div>
+        </div>
+
+        <!-- Logo -->
+        <div class="cpanel" data-panel="logo" hidden>
+          <p class="hint" style="margin-top:0">Adicione um logotipo ao centro do QR. Use uma imagem quadrada (PNG com fundo transparente fica melhor).</p>
+          <div class="grid2">
+            <button class="btn ghost" onclick="document.getElementById('logoInput').click()">Escolher imagem</button>
+            <button class="btn ghost" id="logoRemove" hidden onclick="removeLogo()">Remover logo</button>
+          </div>
+          <input type="file" id="logoInput" accept="image/*" hidden onchange="onLogo(event)">
+        </div>
+
+        <!-- Moldura -->
+        <div class="cpanel" data-panel="frame" hidden>
+          <div class="opts" id="frameOpts">
+            <button class="opt active" data-frame="none" onclick="setFrame('none')">
+              <svg class="frame-ex" viewBox="0 0 24 28"><rect x="4" y="4" width="16" height="16" rx="2" fill="#cbd5e1"/></svg>
+              Nenhuma
+            </button>
+            <button class="opt" data-frame="corners" onclick="setFrame('corners')">
+              <svg class="frame-ex" viewBox="0 0 24 28"><rect x="6" y="5" width="12" height="12" rx="1" fill="#cbd5e1"/><path d="M3 8 L3 4 L7 4 M17 4 L21 4 L21 8 M3 16 L3 20 L7 20 M17 20 L21 20 L21 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="8" y="23" width="8" height="2" rx="1" fill="currentColor"/></svg>
+              Cantos + legenda
+            </button>
+            <button class="opt" data-frame="border" onclick="setFrame('border')">
+              <svg class="frame-ex" viewBox="0 0 24 28"><rect x="2" y="2" width="20" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="6" y="5" width="12" height="12" rx="1.5" fill="#cbd5e1"/><rect x="8" y="20.5" width="8" height="2" rx="1" fill="currentColor"/></svg>
+              Borda + legenda
+            </button>
+            <button class="opt" data-frame="label" onclick="setFrame('label')">
+              <svg class="frame-ex" viewBox="0 0 24 28"><rect x="4" y="3" width="16" height="15" rx="2" fill="#cbd5e1"/><rect x="3" y="20.5" width="18" height="5.5" rx="2" fill="currentColor"/><rect x="8" y="22.7" width="8" height="1.4" rx="0.7" fill="#fff"/></svg>
+              Faixa + legenda
+            </button>
+          </div>
+          <div id="capRow" hidden style="margin-top:12px">
+            <label class="fld" for="c_caption">Legenda</label>
+            <input type="text" id="c_caption" value="ESCANEIE" maxlength="45" oninput="setCaption(this.value)">
+          </div>
+        </div>
+      </details>
+
+      <!-- ===== Passo 3 — Baixar ===== -->
+      <div class="card step" id="step3" hidden>
+        <div class="step-head"><span class="step-num">3</span> Baixar</div>
+        <div class="qr-preview" id="qrPreview" onclick="openModal()" title="Toque para ampliar"></div>
         <div class="hint" style="text-align:center;margin-top:0">Toque no QR para ampliar</div>
         <div class="grid2">
           <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>
-          <button class="btn ok" onclick="shareQR()">Compartilhar imagem</button>
+          <button class="btn ghost" onclick="downloadSVG()">Baixar SVG</button>
         </div>
+        <button class="btn ok" style="margin-top:10px" onclick="shareQR()">Compartilhar imagem</button>
         <button class="btn ghost" style="margin-top:10px" onclick="shareLink()">Compartilhar link do QR</button>
         <div class="hint" id="qrMeta"></div>
       </div>
@@ -174,11 +351,7 @@
 
       <div class="card" id="resultCard" style="display:none">
         <label class="fld">Resultado</label>
-        <div class="result" id="resultText"></div>
-        <div class="grid2">
-          <button class="btn ghost" onclick="copyResult()">Copiar</button>
-          <button class="btn ok" id="openBtn" onclick="openResult()">Abrir link</button>
-        </div>
+        <div id="resultDetail"></div>
       </div>
     </section>
 
@@ -267,6 +440,19 @@
       </div>
 
       <div class="card">
+        <label class="fld">Mapa de localização (opcional)</label>
+        <p class="muted priv-p">
+          No tipo <b>Localização</b>, ao tocar em <b>“Escolher no mapa”</b> você autoriza o uso do
+          <b>OpenStreetMap</b> — a única parte do app que busca algo fora do seu dispositivo. Só então
+          ele carrega as imagens do mapa e, se você buscar um endereço, <b>envia o texto digitado</b> ao
+          OpenStreetMap para encontrar as coordenadas. Suas coordenadas em si não são enviadas, e nada
+          disso acontece se você não abrir o mapa. A opção <b>“Usar localização atual”</b> fica no
+          dispositivo (geolocalização do navegador). Nenhum script de terceiros é carregado — apenas
+          imagens do mapa e a busca de endereço.
+        </p>
+      </div>
+
+      <div class="card">
         <label class="fld">Links compartilhados</label>
         <p class="muted priv-p">
           Ao compartilhar um link de QR, o conteúdo fica dentro do próprio link, depois do <code>#</code>.
@@ -292,15 +478,11 @@
     <section id="view-share" class="view">
       <div class="card">
         <div class="hint" style="text-align:center;margin:0 0 10px">QR Code compartilhado</div>
-        <div class="qr-wrap"><canvas id="shareCanvas" onclick="openModal()" title="Toque para ampliar"></canvas></div>
+        <div class="qr-preview" id="sharePreview" onclick="openModal()" title="Toque para ampliar"></div>
         <div class="hint" style="text-align:center;margin-top:0">Toque no QR para ampliar</div>
         <label class="fld" style="margin-top:12px">Conteúdo</label>
-        <div class="result" id="shareContent"></div>
-        <div class="grid2" id="shareActions" style="margin-top:12px">
-          <button class="btn ghost" onclick="copyShared()">Copiar</button>
-          <button class="btn ok" id="shareOpenBtn" onclick="openShared()">Abrir link</button>
-        </div>
-        <button class="btn" style="margin-top:10px" onclick="exitShared()">Criar o meu QR Code</button>
+        <div id="shareDetail"></div>
+        <button class="btn" style="margin-top:12px" onclick="exitShared()">Criar o meu QR Code</button>
       </div>
     </section>
   </main>
@@ -324,7 +506,7 @@
     <div class="modal-backdrop" onclick="closeModal()"></div>
     <div class="modal-card" role="dialog" aria-modal="true" aria-label="QR Code ampliado">
       <button class="modal-close" onclick="closeModal()" aria-label="Fechar">✕</button>
-      <div class="modal-qr"><canvas id="qrCanvasBig"></canvas></div>
+      <div class="modal-qr"><div id="qrModalBox" class="qr-preview modal-svg"></div></div>
       <div class="modal-meta" id="qrModalMeta"></div>
       <div class="grid2">
         <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>

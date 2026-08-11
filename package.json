@@ -13,13 +13,16 @@
   },
   "scripts": {
     "build": "node build.mjs",
+    "typecheck": "tsc --noEmit",
     "preview": "node build.mjs && npx --yes serve -l 5000 dist",
     "preview:online": "node tunnel.mjs"
   },
   "dependencies": {
-    "jsqr": "1.4.0"
+    "jsqr": "1.4.0",
+    "qr-code-styling": "^1.9.2"
   },
   "devDependencies": {
-    "esbuild": "^0.24.2"
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.2"
   }
 }

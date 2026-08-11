@@ -12,9 +12,9 @@ import path from 'node:path';
 const OUT = 'dist';
 await mkdir(OUT, { recursive: true });
 
-// 1) JS: bundle + minify (jsQR entra aqui, via import)
+// 1) JS: bundle + minify a partir do entry TypeScript (jsQR entra aqui, via import)
 const js = await build({
-  entryPoints: ['src/app.js'],
+  entryPoints: ['src/main.ts'],
   bundle: true,
   format: 'iife',
   minify: true,
