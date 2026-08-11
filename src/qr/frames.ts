@@ -53,7 +53,7 @@ interface CaptionLayout {
  * leve penalidade, então o espaço vence quando o equilíbrio é parecido — mas uma
  * palavra que domina (ex.: "OI TEXTOENORMEJUNTO") é partida em vez de estourar.
  */
-const splitTwoLines = (s0: string): string[] => {
+export const splitTwoLines = (s0: string): string[] => {
   const s = s0.trim();
   if (s.length <= 1) return [s];
   const opts: Array<{ a: string; b: string; cut: boolean }> = [];

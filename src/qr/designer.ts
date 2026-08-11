@@ -7,6 +7,7 @@ import QRCodeStyling from 'qr-code-styling';
 import type { Options, DotType, CornerSquareType, CornerDotType, ErrorCorrectionLevel, QRCode, ShapeType } from 'qr-code-styling';
 import type { ModuleShape, Ecl, QrColors } from './types';
 import { Frame, NoneFrame } from './frames';
+import { rasterizeSVG } from './raster';
 
 /** Espaço de coordenadas lógico do QR (o SVG é vetorial; isto é só a escala). */
 const BASE = 1000;
@@ -140,40 +141,6 @@ export class QRDesigner {
   /** Fator de supersampling na exportação (rasteriza grande e reduz). */
   private static readonly SS = 4;
 
-  /**
-   * Prepara o SVG para rasterização sem os "risquinhos" entre módulos.
-   *
-   * A qr-code-styling não pinta cada módulo diretamente: ela agrupa as formas
-   * num `<clipPath>` e recorta um retângulo grande da cor. Ao rasterizar, o
-   * anti-aliasing da máscara de recorte cobre só parcialmente os pixels da
-   * borda compartilhada entre módulos vizinhos — o fundo vaza ali e vira uma
-   * grade de linhas claras sobre as áreas escuras (o `crispEdges` original
-   * também não resolve: com módulos de tamanho fracionário, o encaixe na grade
-   * de pixels deixa vãos de 1px). A correção desfaz o recorte: cada grupo
-   * recortado vira um `<g>` com as próprias formas pintadas na cor, mais um
-   * `stroke` fino da mesma cor para vizinhos se sobreporem — sem borda
-   * compartilhada, sem costura. Isso só afeta a rasterização; o SVG exportado
-   * permanece intacto.
-   *
-   * Além disso, forçamos o `width`/`height` do próprio SVG para a resolução final
-   * (ss× o alvo): o navegador rasteriza o SVG no tamanho intrínseco e só então
-   * escala, então sem isso o desenho sairia de 1000px e seria ampliado (borrado).
-   */
-  private rasterSVG(svg: string, w: number, h: number): string {
-    const clips = new Map<string, string>();
-    for (const m of svg.matchAll(/<clipPath id="([^"]+)">([\s\S]*?)<\/clipPath>/g)) clips.set(m[1], m[2]);
-    return svg
-      .replace(/shape-rendering="[^"]*"/g, 'shape-rendering="geometricPrecision"')
-      .replace(/<rect\b[^>]*clip-path="url\('?#([^'")]+)'?\)"[^>]*\/>/g, (tag, id: string) => {
-        const shapes = clips.get(id);
-        const fill = /\bfill="([^"]*)"/.exec(tag)?.[1];
-        if (!shapes || !fill) return tag; // recorte desconhecido/gradiente: mantém como está
-        return `<g fill="${fill}" stroke="${fill}" stroke-width="1" stroke-linejoin="round">${shapes}</g>`;
-      })
-      .replace(/(<svg\b[^>]*?)\swidth="[^"]*"/i, `$1 width="${w}"`)
-      .replace(/(<svg\b[^>]*?)\sheight="[^"]*"/i, `$1 height="${h}"`);
-  }
-
   /** Rasteriza o SVG final num `<canvas>` de `px` de largura. */
   async toCanvas(px: number): Promise<HTMLCanvasElement> {
     const svg = await this.toSVG();
@@ -181,7 +148,8 @@ export class QRDesigner {
     const outW = Math.round(BASE * scale);
     const outH = Math.round(this.lastH * scale);
 
-    const hiRes = this.rasterSVG(svg, outW * QRDesigner.SS, outH * QRDesigner.SS);
+    // Ajusta o SVG (desfaz o clip que causava as costuras + força a resolução).
+    const hiRes = rasterizeSVG(svg, outW * QRDesigner.SS, outH * QRDesigner.SS);
     const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(hiRes);
     return new Promise((resolve, reject) => {
       const img = new Image();

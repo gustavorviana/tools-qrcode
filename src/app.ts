@@ -8,6 +8,11 @@ import { QRReader } from './qr/reader';
 import { createFrame } from './qr/frames';
 import type { Ecl, ModuleShape, FrameStyle } from './qr/types';
 import type { ShapeType } from 'qr-code-styling';
+import { escWifi, escVcard, icalDate, fmtIcalDate, maskPhoneBR, maskPhoneWa } from './format';
+import { parseDecoded } from './qr/decode';
+import type { DecodedType } from './qr/decode';
+import { SHARE_DEFAULTS, buildShareQuery, parseShareQuery } from './qr/share';
+import type { ShareParams } from './qr/share';
 
 /* ---------- Helpers de DOM ---------- */
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
@@ -23,32 +28,10 @@ function toast(msg: string): void {
   toastTimer = window.setTimeout(() => t.classList.remove('show'), 1800);
 }
 
-/* ---------- Escapes / máscaras ---------- */
-const escWifi = (s: string): string => s.replace(/([\\;,":])/g, '\\$1');
-const escVcard = (s: string): string => s.replace(/\\/g, '\\\\').replace(/;/g, '\\;')
-  .replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
-const icalDate = (s: string): string => s ? s.replace(/[-:]/g, '') + '00' : '';
+/* ---------- Formatação (escapes/máscaras/datas vivem em ./format) ---------- */
 // Letra do nível de correção, para exibição na meta.
 const ECL_LETTER: Record<Ecl, string> = { LOW: 'L', MEDIUM: 'M', QUARTILE: 'Q', HIGH: 'H' };
 
-// Máscara de telefone BR local: (11) 99999-9999 (celular) ou (11) 9999-9999 (fixo).
-function maskPhoneBR(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 11);
-  if (d.length <= 2) return d;
-  const ddd = '(' + d.slice(0, 2) + ') ';
-  const r = d.slice(2);
-  if (r.length <= 4) return ddd + r;
-  if (r.length <= 8) return ddd + r.slice(0, 4) + '-' + r.slice(4);
-  return ddd + r.slice(0, 5) + '-' + r.slice(5);
-}
-// Máscara de WhatsApp: inclui o código do país (dígitos além dos 11 nacionais).
-function maskPhoneWa(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 15);
-  if (!d) return '';
-  if (d.length <= 11) return maskPhoneBR(d);
-  const cc = d.slice(0, d.length - 11);
-  return '+' + cc + ' ' + maskPhoneBR(d.slice(d.length - 11));
-}
 function attachMask(id: string, fn: (v: string) => string): void {
   const el = document.getElementById(id) as HTMLInputElement | null;
   if (el) el.addEventListener('input', () => { el.value = fn(el.value); });
@@ -92,70 +75,7 @@ function copyText(t: string): void {
   navigator.clipboard.writeText(t).then(
     () => toast('Copiado!'), () => toast('Não foi possível copiar'));
 }
-function icalGet(text: string, key: string): string {
-  const m = text.match(new RegExp('^' + key + '[^:\\n]*:(.*)$', 'im'));
-  return m ? m[1].trim().replace(/\\n/gi, '\n').replace(/\\([,;\\])/g, '$1') : '';
-}
-function fmtIcalDate(s: string): string {
-  const m = s.match(/(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2}))?/);
-  if (!m) return s;
-  const d = m[3] + '/' + m[2] + '/' + m[1];
-  return m[4] ? d + ' ' + m[4] + ':' + m[5] : d;
-}
-
-type DecodedType = 'text' | 'link' | 'tel' | 'sms' | 'email' | 'wifi' | 'geo' | 'vcard' | 'event' | 'whatsapp';
-interface Decoded {
-  type: DecodedType;
-  url?: string; number?: string; msg?: string; to?: string; subject?: string; body?: string;
-  ssid?: string; sec?: string; pass?: string; hidden?: boolean;
-  lat?: string; lng?: string; name?: string; tel?: string; email?: string;
-  org?: string; title?: string; loc?: string; start?: string; end?: string; text?: string;
-}
-
-function parseDecoded(raw: string): Decoded {
-  const t = raw.trim();
-  if (/^BEGIN:VCARD/i.test(t)) {
-    return { type: 'vcard',
-      name: icalGet(t, 'FN') || icalGet(t, 'N').replace(/;+/g, ' ').trim(),
-      tel: icalGet(t, 'TEL'), email: icalGet(t, 'EMAIL'),
-      org: icalGet(t, 'ORG'), title: icalGet(t, 'TITLE'), url: icalGet(t, 'URL') };
-  }
-  if (/^BEGIN:V(CALENDAR|EVENT)/i.test(t)) {
-    return { type: 'event', title: icalGet(t, 'SUMMARY'), loc: icalGet(t, 'LOCATION'),
-      start: icalGet(t, 'DTSTART'), end: icalGet(t, 'DTEND') };
-  }
-  if (/^WIFI:/i.test(t)) {
-    const g = (k: string): string => {
-      const m = t.match(new RegExp(k + ':((?:\\\\.|[^;])*)', 'i'));
-      return m ? m[1].replace(/\\(.)/g, '$1') : '';
-    };
-    return { type: 'wifi', ssid: g('S'), sec: g('T') || 'nopass', pass: g('P'), hidden: /;H:true/i.test(t) };
-  }
-  if (/^geo:/i.test(t)) {
-    const c = t.slice(4).split(/[?;]/)[0].split(',');
-    return { type: 'geo', lat: (c[0] || '').trim(), lng: (c[1] || '').trim() };
-  }
-  if (/^mailto:/i.test(t)) {
-    const mm = t.match(/^mailto:([^?]*)\??(.*)$/i)!;
-    const p = new URLSearchParams(mm[2] || '');
-    return { type: 'email', to: decodeURIComponent(mm[1]), subject: p.get('subject') || '', body: p.get('body') || '' };
-  }
-  if (/^tel:/i.test(t)) return { type: 'tel', number: t.slice(4) };
-  if (/^SMSTO:/i.test(t)) { const p = t.slice(6).split(':'); return { type: 'sms', number: p[0], msg: p.slice(1).join(':') }; }
-  if (/^sms:/i.test(t)) {
-    const m = t.slice(4).match(/^([^?]*)\??(?:.*body=([^&]*))?/i)!;
-    return { type: 'sms', number: m[1], msg: m[2] ? decodeURIComponent(m[2]) : '' };
-  }
-  if (/^https?:\/\/(wa\.me|(api|web)\.whatsapp\.com)\//i.test(t)) {
-    try {
-      const u = new URL(t);
-      const number = u.searchParams.get('phone') || u.pathname.replace(/\D/g, '');
-      return { type: 'whatsapp', number, msg: u.searchParams.get('text') || '', url: t };
-    } catch { return { type: 'link', url: t }; }
-  }
-  if (/^https?:\/\//i.test(t)) return { type: 'link', url: t };
-  return { type: 'text', text: raw };
-}
+/* parseDecoded, Decoded e DecodedType vivem em ./qr/decode (lógica pura). */
 
 const KIND: Record<DecodedType, { i: string; k: string }> = {
   text: { i: '≡', k: 'Texto' }, link: { i: '🔗', k: 'Link' }, tel: { i: '📞', k: 'Telefone' },
@@ -272,29 +192,6 @@ const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
 const isStandalone = (): boolean =>
   window.matchMedia('(display-mode: standalone)').matches
   || (navigator as unknown as { standalone?: boolean }).standalone === true;
-
-/** Opções que um link compartilhado pode carregar (texto + o que fugir do padrão). */
-interface ShareParams {
-  text: string;
-  ecl?: Ecl;
-  fg?: string;
-  bg?: string;
-  shape?: ModuleShape;
-  qrShape?: ShapeType;
-  frame?: FrameStyle;
-  caption?: string;
-}
-
-/** Padrões da personalização — o que estiver assim é omitido do link. */
-const SHARE_DEFAULTS = {
-  ecl: 'MEDIUM' as Ecl,
-  fg: '#0f172a',
-  bg: '#ffffff',
-  shape: 'solid' as ModuleShape,
-  qrShape: 'square' as ShapeType,
-  frame: 'none' as FrameStyle,
-  caption: 'ESCANEIE',
-};
 
 /** Controlador principal da aplicação. */
 export class App {
@@ -663,19 +560,13 @@ export class App {
    * inflaria demais a URL.
    */
   private buildShareURL(text: string): string {
-    const p = new URLSearchParams();
-    p.set('q', text);
     const { fg, bg } = this.designer.colors;
-    if (this.designer.ecl !== SHARE_DEFAULTS.ecl) p.set('e', this.designer.ecl);
-    if (fg.toLowerCase() !== SHARE_DEFAULTS.fg) p.set('fg', fg.replace(/^#/, ''));
-    if (bg.toLowerCase() !== SHARE_DEFAULTS.bg) p.set('bg', bg.replace(/^#/, ''));
-    if (this.designer.shape !== SHARE_DEFAULTS.shape) p.set('s', this.designer.shape);
-    if (this.designer.qrShape !== SHARE_DEFAULTS.qrShape) p.set('qs', this.designer.qrShape);
-    if (this.frameStyle !== SHARE_DEFAULTS.frame) {
-      p.set('fr', this.frameStyle);
-      if (this.caption && this.caption !== SHARE_DEFAULTS.caption) p.set('cap', this.caption);
-    }
-    return location.origin + location.pathname + '#' + p.toString();
+    const q = buildShareQuery({
+      text, ecl: this.designer.ecl, fg, bg,
+      shape: this.designer.shape, qrShape: this.designer.qrShape,
+      frame: this.frameStyle, caption: this.caption,
+    });
+    return location.origin + location.pathname + '#' + q;
   }
 
   async shareLink(): Promise<void> {
@@ -689,32 +580,11 @@ export class App {
     catch { toast('Não foi possível copiar'); }
   }
 
-  /** Lê texto + opções de um link (hash `#q=…` ou query `?q=…`), validando cada valor. */
+  /** Lê texto + opções de um link (hash `#q=…` ou query `?q=…`); validação em ./qr/share. */
   private getSharedParams(): ShareParams | null {
     const raw = location.hash.length > 1 ? location.hash.slice(1)
       : location.search.length > 1 ? location.search.slice(1) : '';
-    if (!raw) return null;
-    const p = new URLSearchParams(raw);
-    const text = p.get('q');
-    if (text == null) return null;
-
-    const hex = (v: string | null): string | undefined => {
-      const h = (v ?? '').replace(/^#/, '');
-      return /^[0-9a-fA-F]{3,8}$/.test(h) ? '#' + h.toLowerCase() : undefined;
-    };
-    const oneOf = <T extends string>(v: string | null, allowed: readonly T[]): T | undefined =>
-      v != null && (allowed as readonly string[]).includes(v) ? (v as T) : undefined;
-
-    return {
-      text,
-      ecl: oneOf(p.get('e'), ['LOW', 'MEDIUM', 'QUARTILE', 'HIGH'] as const),
-      fg: hex(p.get('fg')),
-      bg: hex(p.get('bg')),
-      shape: oneOf(p.get('s'), ['solid', 'rounded', 'dots', 'classy'] as const),
-      qrShape: oneOf(p.get('qs'), ['square', 'circle'] as const),
-      frame: oneOf(p.get('fr'), ['none', 'corners', 'border', 'label'] as const),
-      caption: p.get('cap') ?? undefined,
-    };
+    return parseShareQuery(raw);
   }
 
   private async renderShared(sp: ShareParams): Promise<void> {
