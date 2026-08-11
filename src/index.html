@@ -47,7 +47,7 @@
   <main>
     <!-- ============ GERAR ============ -->
     <section id="view-gen" class="view active">
-      <div class="card step">
+      <div class="card step" id="genContent">
         <div class="step-head"><span class="step-num">1</span> Conteúdo</div>
         <div class="type-tabs" id="typeChips">
           <button class="type-tab active" data-type="text" onclick="setType('text')"><span class="tt-ico">📝</span><span>Texto</span></button>
@@ -221,6 +221,11 @@
         <div id="genErr" class="err"></div>
       </div>
 
+      <!-- Etapa 2: aparece só após "Gerar"; mudanças de personalização
+           redesenham o QR ao vivo (sem precisar clicar de novo). -->
+      <div id="genResult" hidden>
+        <button class="btn ghost gen-back" onclick="backToContent()">← Voltar e editar conteúdo</button>
+
       <!-- ===== Passo 2 — Personalizar (sanfona, fechada por padrão) ===== -->
       <details class="card step accordion">
         <summary class="step-head"><span class="step-num">2</span> Personalizar <span class="step-opt">(opcional)</span><span class="acc-chevron" aria-hidden="true">⌄</span></summary>
@@ -328,8 +333,10 @@
         </div>
         <button class="btn ok" style="margin-top:10px" onclick="shareQR()">Compartilhar imagem</button>
         <button class="btn ghost" style="margin-top:10px" onclick="shareLink()">Compartilhar link do QR</button>
+        <p class="hint" id="shareLinkNote" hidden style="margin-top:6px;color:#a16207">ⓘ O logo <b>não</b> vai no link compartilhado — para mantê-lo, use “Baixar PNG” ou “Compartilhar imagem”.</p>
         <div class="hint" id="qrMeta"></div>
       </div>
+      </div><!-- /genResult -->
     </section>
 
     <!-- ============ LER ============ -->
@@ -455,10 +462,11 @@
       <div class="card">
         <label class="fld">Links compartilhados</label>
         <p class="muted priv-p">
-          Ao compartilhar um link de QR, o conteúdo fica dentro do próprio link, depois do <code>#</code>.
-          Esse trecho <b>não</b> é enviado ao servidor — mas fica <b>visível para quem receber o link</b> e
-          para o app por onde você compartilhar (mensageiro, e-mail, etc.). Compartilhe apenas o que você
-          quer que a outra pessoa veja.
+          Ao compartilhar um link de QR, o conteúdo — e as opções de estilo que você escolheu (cores,
+          forma, moldura, legenda…) — ficam dentro do próprio link, depois do <code>#</code>. O
+          <b>logo não</b> é incluído. Esse trecho <b>não</b> é enviado ao servidor — mas fica
+          <b>visível para quem receber o link</b> e para o app por onde você compartilhar (mensageiro,
+          e-mail, etc.). Compartilhe apenas o que você quer que a outra pessoa veja.
         </p>
       </div>
 

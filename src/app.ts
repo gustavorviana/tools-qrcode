@@ -273,6 +273,29 @@ const isStandalone = (): boolean =>
   window.matchMedia('(display-mode: standalone)').matches
   || (navigator as unknown as { standalone?: boolean }).standalone === true;
 
+/** Opções que um link compartilhado pode carregar (texto + o que fugir do padrão). */
+interface ShareParams {
+  text: string;
+  ecl?: Ecl;
+  fg?: string;
+  bg?: string;
+  shape?: ModuleShape;
+  qrShape?: ShapeType;
+  frame?: FrameStyle;
+  caption?: string;
+}
+
+/** Padrões da personalização — o que estiver assim é omitido do link. */
+const SHARE_DEFAULTS = {
+  ecl: 'MEDIUM' as Ecl,
+  fg: '#0f172a',
+  bg: '#ffffff',
+  shape: 'solid' as ModuleShape,
+  qrShape: 'square' as ShapeType,
+  frame: 'none' as FrameStyle,
+  caption: 'ESCANEIE',
+};
+
 /** Controlador principal da aplicação. */
 export class App {
   private readonly designer = new QRDesigner();
@@ -281,6 +304,10 @@ export class App {
   private currentType = 'text';
   private lastText = '';
   private lastSVG = '';
+
+  /** Após a 1ª geração, mudanças de personalização redesenham o QR ao vivo. */
+  private live = false;
+  private liveTimer: number | undefined;
 
   /** Estilo/legenda atuais da moldura; combinados numa instância `Frame`. */
   private frameStyle: FrameStyle = 'none';
@@ -446,6 +473,8 @@ export class App {
     this.lastSVG = svg;
     $('qrPreview').innerHTML = svg;
     $('step3').hidden = false;
+    // Aviso de que o logo não é embutido no link compartilhado (só na imagem).
+    $('shareLinkNote').hidden = !this.designer.hasLogo;
     const { moduleCount, version, ecl } = this.designer.info;
     $('qrMeta').textContent =
       `Versão ${version} · correção ${ECL_LETTER[ecl]} · ${moduleCount}×${moduleCount} módulos`;
@@ -454,7 +483,7 @@ export class App {
   private async regenerate(): Promise<void> {
     $('genErr').textContent = '';
     const text = this.buildContent();
-    if (!text.trim()) { $('step3').hidden = true; return; }
+    if (!text.trim()) { this.lastSVG = ''; $('step3').hidden = true; return; }
     let ecl = val('genEcl') as Ecl;
     if (this.designer.hasLogo && (ecl === 'LOW' || ecl === 'MEDIUM')) ecl = 'QUARTILE';
     this.lastText = text;
@@ -465,8 +494,36 @@ export class App {
 
   async doGenerate(): Promise<void> {
     await this.regenerate();
-    if (this.lastSVG) $('step3').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    else if (!$('genErr').textContent) $('genErr').textContent = 'Preencha os campos primeiro.';
+    if (this.lastSVG) {
+      // Sucesso: troca para a etapa de personalização + QR (ao vivo).
+      this.live = true;
+      $('genContent').hidden = true;
+      $('genResult').hidden = false;
+      const m = document.querySelector('main');
+      if (m) m.scrollTop = 0;
+    } else if (!$('genErr').textContent) {
+      $('genErr').textContent = 'Preencha os campos primeiro.';
+    }
+  }
+
+  /** Volta à etapa de conteúdo (oculta a personalização/QR). */
+  backToContent(): void {
+    this.live = false;
+    clearTimeout(this.liveTimer);
+    $('genResult').hidden = true;
+    $('genContent').hidden = false;
+    const m = document.querySelector('main');
+    if (m) m.scrollTop = 0;
+  }
+
+  /**
+   * Redesenha o QR ao vivo quando a personalização muda (só após a 1ª geração).
+   * Debounce curto para coalescer eventos rápidos (arrastar cor, digitar hex/legenda).
+   */
+  private liveUpdate(): void {
+    if (!this.live) return;
+    clearTimeout(this.liveTimer);
+    this.liveTimer = window.setTimeout(() => void this.regenerate(), 120);
   }
 
   /* ---------- Personalização ---------- */
@@ -479,14 +536,16 @@ export class App {
   }
 
   /*
-   * Os ajustes de personalização abaixo apenas guardam o estado no designer e
-   * atualizam a UI dos controles; o QR só é (re)desenhado ao clicar em "Gerar".
+   * Os ajustes de personalização abaixo guardam o estado no designer e atualizam
+   * a UI dos controles; após a 1ª geração (etapa 2), `liveUpdate()` redesenha o
+   * QR automaticamente a cada mudança.
    */
   setColor(which: 'fg' | 'bg', value: string): void {
     this.designer.colors = { [which]: value };
     const base = which === 'fg' ? 'c_fg' : 'c_bg';
     $i(base).value = value;
     $i(base + '_hex').value = value;
+    this.liveUpdate();
   }
 
   setHex(which: 'fg' | 'bg', raw: string): void {
@@ -496,6 +555,7 @@ export class App {
     v = '#' + v.toLowerCase();
     this.designer.colors = { [which]: v };
     $i(which === 'fg' ? 'c_fg' : 'c_bg').value = v;
+    this.liveUpdate();
   }
 
   applyPreset(fg: string, bg: string): void { this.setColor('fg', fg); this.setColor('bg', bg); }
@@ -504,12 +564,14 @@ export class App {
     this.designer.shape = v;
     document.querySelectorAll('#shapeOpts .opt').forEach((o) =>
       o.classList.toggle('active', (o as HTMLElement).dataset.shape === v));
+    this.liveUpdate();
   }
 
   setQrShape(v: ShapeType): void {
     this.designer.qrShape = v;
     document.querySelectorAll('#qrShapeOpts .opt').forEach((o) =>
       o.classList.toggle('active', (o as HTMLElement).dataset.qrshape === v));
+    this.liveUpdate();
   }
 
   setFrame(v: FrameStyle): void {
@@ -518,11 +580,13 @@ export class App {
     document.querySelectorAll('#frameOpts .opt').forEach((o) =>
       o.classList.toggle('active', (o as HTMLElement).dataset.frame === v));
     $('capRow').hidden = v === 'none';
+    this.liveUpdate();
   }
 
   setCaption(v: string): void {
     this.caption = v;
     this.designer.frame = createFrame(this.frameStyle, v);
+    this.liveUpdate();
   }
 
   onLogo(ev: Event): void {
@@ -534,6 +598,7 @@ export class App {
     reader.onload = () => {
       this.designer.logo = reader.result as string;
       $('logoRemove').hidden = false;
+      this.liveUpdate();
     };
     reader.readAsDataURL(file);
   }
@@ -541,6 +606,7 @@ export class App {
   removeLogo(): void {
     this.designer.logo = null;
     $('logoRemove').hidden = true;
+    this.liveUpdate();
   }
 
   /* ---------- Modal ---------- */
@@ -591,8 +657,25 @@ export class App {
   }
 
   /* ---------- Link compartilhável ---------- */
+  /**
+   * Link compartilhável: `#q=<texto>` mais as opções que fogem do padrão
+   * (correção de erro + personalização). O logo não entra — é uma imagem e
+   * inflaria demais a URL.
+   */
   private buildShareURL(text: string): string {
-    return location.origin + location.pathname + '#q=' + encodeURIComponent(text);
+    const p = new URLSearchParams();
+    p.set('q', text);
+    const { fg, bg } = this.designer.colors;
+    if (this.designer.ecl !== SHARE_DEFAULTS.ecl) p.set('e', this.designer.ecl);
+    if (fg.toLowerCase() !== SHARE_DEFAULTS.fg) p.set('fg', fg.replace(/^#/, ''));
+    if (bg.toLowerCase() !== SHARE_DEFAULTS.bg) p.set('bg', bg.replace(/^#/, ''));
+    if (this.designer.shape !== SHARE_DEFAULTS.shape) p.set('s', this.designer.shape);
+    if (this.designer.qrShape !== SHARE_DEFAULTS.qrShape) p.set('qs', this.designer.qrShape);
+    if (this.frameStyle !== SHARE_DEFAULTS.frame) {
+      p.set('fr', this.frameStyle);
+      if (this.caption && this.caption !== SHARE_DEFAULTS.caption) p.set('cap', this.caption);
+    }
+    return location.origin + location.pathname + '#' + p.toString();
   }
 
   async shareLink(): Promise<void> {
@@ -606,16 +689,46 @@ export class App {
     catch { toast('Não foi possível copiar'); }
   }
 
-  private getSharedText(): string | null {
-    if (location.hash.startsWith('#q=')) return decodeURIComponent(location.hash.slice(3));
-    const qp = new URLSearchParams(location.search).get('q');
-    return qp != null ? qp : null;
+  /** Lê texto + opções de um link (hash `#q=…` ou query `?q=…`), validando cada valor. */
+  private getSharedParams(): ShareParams | null {
+    const raw = location.hash.length > 1 ? location.hash.slice(1)
+      : location.search.length > 1 ? location.search.slice(1) : '';
+    if (!raw) return null;
+    const p = new URLSearchParams(raw);
+    const text = p.get('q');
+    if (text == null) return null;
+
+    const hex = (v: string | null): string | undefined => {
+      const h = (v ?? '').replace(/^#/, '');
+      return /^[0-9a-fA-F]{3,8}$/.test(h) ? '#' + h.toLowerCase() : undefined;
+    };
+    const oneOf = <T extends string>(v: string | null, allowed: readonly T[]): T | undefined =>
+      v != null && (allowed as readonly string[]).includes(v) ? (v as T) : undefined;
+
+    return {
+      text,
+      ecl: oneOf(p.get('e'), ['LOW', 'MEDIUM', 'QUARTILE', 'HIGH'] as const),
+      fg: hex(p.get('fg')),
+      bg: hex(p.get('bg')),
+      shape: oneOf(p.get('s'), ['solid', 'rounded', 'dots', 'classy'] as const),
+      qrShape: oneOf(p.get('qs'), ['square', 'circle'] as const),
+      frame: oneOf(p.get('fr'), ['none', 'corners', 'border', 'label'] as const),
+      caption: p.get('cap') ?? undefined,
+    };
   }
 
-  private async renderShared(text: string): Promise<void> {
+  private async renderShared(sp: ShareParams): Promise<void> {
+    const text = sp.text;
     this.lastText = text;
     this.designer.text = text;
-    this.designer.ecl = 'MEDIUM';
+    // Aplica as opções do link (ou o padrão para as ausentes).
+    this.designer.ecl = sp.ecl ?? SHARE_DEFAULTS.ecl;
+    this.designer.colors = { fg: sp.fg ?? SHARE_DEFAULTS.fg, bg: sp.bg ?? SHARE_DEFAULTS.bg };
+    this.designer.shape = sp.shape ?? SHARE_DEFAULTS.shape;
+    this.designer.qrShape = sp.qrShape ?? SHARE_DEFAULTS.qrShape;
+    this.frameStyle = sp.frame ?? SHARE_DEFAULTS.frame;
+    this.caption = sp.caption ?? SHARE_DEFAULTS.caption;
+    this.designer.frame = createFrame(this.frameStyle, this.caption);
     let svg: string;
     try { svg = await this.designer.toSVG(); }
     catch { return; } // conteúdo inválido/grande demais → segue app normal
@@ -634,9 +747,9 @@ export class App {
   }
 
   private initShared(): void {
-    let text: string | null;
-    try { text = this.getSharedText(); } catch { text = null; }
-    if (text) void this.renderShared(text);
+    let sp: ShareParams | null;
+    try { sp = this.getSharedParams(); } catch { sp = null; }
+    if (sp) void this.renderShared(sp);
   }
 
   exitShared(): void {
@@ -647,8 +760,27 @@ export class App {
       .forEach((e) => { (e as HTMLInputElement).value = ''; });
     $i('f_hidden').checked = false;
     $('step3').hidden = true;
+    this.live = false;
+    $('genResult').hidden = true;
+    $('genContent').hidden = false;
+    this.resetCustomization();
     this.setType('text');
     this.showView('gen');
+  }
+
+  /**
+   * Restaura a personalização (designer + controles) ao padrão. Usado ao sair de
+   * um link compartilhado, para não vazar as opções do link para um novo QR.
+   */
+  private resetCustomization(): void {
+    this.setColor('fg', SHARE_DEFAULTS.fg);
+    this.setColor('bg', SHARE_DEFAULTS.bg);
+    this.setShape(SHARE_DEFAULTS.shape);
+    this.setQrShape(SHARE_DEFAULTS.qrShape);
+    this.setFrame(SHARE_DEFAULTS.frame);
+    this.setCaption(SHARE_DEFAULTS.caption);
+    $i('c_caption').value = SHARE_DEFAULTS.caption;
+    this.removeLogo();
   }
 
   /* ---------- Leitura ---------- */
@@ -890,8 +1022,8 @@ export class App {
     attachMask('f_vctel', maskPhoneBR);
     attachMask('f_wanum', maskPhoneWa);
 
-    // O QR é gerado apenas ao clicar em "Gerar"; o nível de correção é lido
-    // nesse momento, então não há regeneração ao vivo aqui.
+    // O conteúdo e o nível de correção são fixados ao clicar em "Gerar"; a partir
+    // daí (etapa 2) só a personalização muda, redesenhando o QR ao vivo.
 
     this.initShared();
   }
@@ -900,12 +1032,13 @@ export class App {
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeModal(); });
 
     window.addEventListener('hashchange', () => {
-      let text: string | null;
-      try { text = this.getSharedText(); } catch { text = null; }
-      if (text) {
-        this.renderShared(text);
+      let sp: ShareParams | null;
+      try { sp = this.getSharedParams(); } catch { sp = null; }
+      if (sp) {
+        this.renderShared(sp);
       } else if ($('view-share').classList.contains('active')) {
         (document.querySelector('.tabs') as HTMLElement).hidden = false;
+        this.resetCustomization();
         this.showView('gen');
       }
     });
@@ -942,6 +1075,7 @@ export class App {
     w.dismissInstall = () => this.dismissInstall();
     w.promptInstall = () => this.promptInstall();
     w.exitShared = () => this.exitShared();
+    w.backToContent = () => this.backToContent();
     w.useCurrentLocation = () => this.useCurrentLocation();
     w.loadMap = () => this.loadMap();
     w.mapZoom = (d: number) => this.mapZoom(d);

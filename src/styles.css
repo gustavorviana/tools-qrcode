@@ -106,6 +106,8 @@
   button.btn.ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
   button.btn.ghost:hover{background:var(--panel2)}
   button.btn.ok{background:var(--dark);color:#fff}
+  /* Botão "Voltar" no topo da etapa 2 (personalização + QR). */
+  button.btn.gen-back{margin-bottom:14px}
   button.btn.ok:hover{background:#1e293b}
   button.btn:disabled{opacity:.5;cursor:not-allowed}
 
