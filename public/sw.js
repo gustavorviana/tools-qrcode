@@ -2,7 +2,7 @@
    Único arquivo .js "separado" exigido pela plataforma (SW não pode ser inline).
    Toda a lógica do app está embutida no index.html. */
 const CACHE_PREFIX = 'qr-utils-';
-const CACHE = CACHE_PREFIX + 'v1';
+const CACHE = CACHE_PREFIX + 'v1.1';
 // Nota: usamos './' (URL canônica, responde 200) e NÃO './index.html', que os
 // servidores de estáticos (serve, Cloudflare Pages) redirecionam (301) para './'
 // — e a Cache API não armazena respostas redirecionadas.

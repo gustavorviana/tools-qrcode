@@ -342,6 +342,11 @@
     <!-- ============ LER ============ -->
     <section id="view-read" class="view">
       <div class="card">
+        <div class="ctabs" id="readModeTabs" style="margin-bottom:12px">
+          <button class="ctab active" data-readmode="auto" onclick="setReadMode('auto')">Automático</button>
+          <button class="ctab" data-readmode="qr" onclick="setReadMode('qr')">QR Code</button>
+          <button class="ctab" data-readmode="barcode" onclick="setReadMode('barcode')">Barras</button>
+        </div>
         <div class="scan-box" id="scanBox">
           <video id="video" playsinline muted></video>
           <div class="reticle"></div>
@@ -400,6 +405,11 @@
             <div class="credit-name">jsQR <span class="lic">MIT</span></div>
             <span class="desc">Decodificação (leitura) de QR Code, embutida no app.</span>
             <a href="https://github.com/cozmo/jsQR" target="_blank" rel="noopener">github.com/cozmo/jsQR</a>
+          </li>
+          <li>
+            <div class="credit-name">ZXing <span class="lic">Apache-2.0</span></div>
+            <span class="desc">Leitura de código de barras (EAN, UPC, Code 128, etc.), embutida no app.</span>
+            <a href="https://github.com/zxing-js/library" target="_blank" rel="noopener">github.com/zxing-js/library</a>
           </li>
           <li>
             <div class="credit-name">QR Code generator · Project Nayuki <span class="lic">MIT</span></div>

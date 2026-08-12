@@ -5,6 +5,7 @@
  */
 import { QRDesigner } from './qr/designer';
 import { QRReader } from './qr/reader';
+import type { ReadMode } from './qr/reader';
 import { createFrame } from './qr/frames';
 import type { Ecl, ModuleShape, FrameStyle } from './qr/types';
 import type { ShapeType } from 'qr-code-styling';
@@ -201,6 +202,9 @@ export class App {
   private currentType = 'text';
   private lastText = '';
   private lastSVG = '';
+
+  /** Modo do leitor: procurar os dois (padrão), só QR ou só código de barras. */
+  private readMode: ReadMode = 'auto';
 
   /** Após a 1ª geração, mudanças de personalização redesenham o QR ao vivo. */
   private live = false;
@@ -654,6 +658,23 @@ export class App {
   }
 
   /* ---------- Leitura ---------- */
+  /** Rótulo do que está sendo procurado, conforme o modo do leitor. */
+  private modeLabel(): string {
+    return this.readMode === 'qr' ? 'QR Code'
+      : this.readMode === 'barcode' ? 'código de barras'
+        : 'QR Code ou código de barras';
+  }
+
+  /** Escolhe o que o leitor procura: automático, só QR ou só código de barras. */
+  setReadMode(m: ReadMode): void {
+    this.readMode = m;
+    document.querySelectorAll('#readModeTabs .ctab').forEach((b) =>
+      b.classList.toggle('active', (b as HTMLElement).dataset.readmode === m));
+    $('readHint').textContent = this.scanning
+      ? `Aponte para um ${this.modeLabel()}.`
+      : `Leia ${this.modeLabel()} pela câmera ou de uma imagem do dispositivo.`;
+  }
+
   async toggleCamera(): Promise<void> {
     if (this.scanning) { this.stopCamera(); return; }
     const errEl = $('readErr');
@@ -665,7 +686,7 @@ export class App {
       await video.play();
       $('scanBox').classList.add('active');
       $('camBtn').textContent = 'Parar câmera';
-      $('readHint').textContent = 'Aponte para um QR Code.';
+      $('readHint').textContent = `Aponte para um ${this.modeLabel()}.`;
       this.scanning = true;
       this.scanLoop();
     } catch (e) {
@@ -679,7 +700,7 @@ export class App {
     const video = $('video') as HTMLVideoElement;
     try {
       if (video.readyState >= 2) {
-        const value = await this.reader.decode(video, video.videoWidth, video.videoHeight);
+        const value = await this.reader.decode(video, video.videoWidth, video.videoHeight, { mode: this.readMode });
         if (value != null) { this.showResult(value); this.stopCamera(); return; }
       }
     } catch { /* ignora frames com erro */ }
@@ -705,9 +726,9 @@ export class App {
     errEl.textContent = '';
     try {
       const bmp = await createImageBitmap(file);
-      const value = await this.reader.decode(bmp, bmp.width, bmp.height);
+      const value = await this.reader.decode(bmp, bmp.width, bmp.height, { mode: this.readMode, thorough: true });
       if (value != null) this.showResult(value);
-      else errEl.textContent = 'Nenhum QR Code encontrado na imagem.';
+      else errEl.textContent = `Nenhum ${this.modeLabel()} encontrado na imagem.`;
     } catch (e) {
       errEl.textContent = 'Falha ao ler a imagem: ' + ((e as Error).message || e);
     }
@@ -885,7 +906,7 @@ export class App {
         'No iPhone/iPad: toque em Compartilhar e depois em "Adicionar à Tela de Início".';
     }
 
-    $('readHint').textContent = 'Leia pela câmera ou selecionando uma imagem do dispositivo.';
+    $('readHint').textContent = 'Leia QR Code ou código de barras pela câmera ou de uma imagem do dispositivo.';
 
     attachMask('f_tel', maskPhoneBR);
     attachMask('f_smsnum', maskPhoneBR);
@@ -940,6 +961,7 @@ export class App {
     w.shareQR = () => this.shareQR();
     w.shareLink = () => this.shareLink();
     w.toggleCamera = () => this.toggleCamera();
+    w.setReadMode = (m: ReadMode) => this.setReadMode(m);
     w.readFromFile = (ev: Event) => this.readFromFile(ev);
     w.installApp = () => this.installApp();
     w.dismissInstall = () => this.dismissInstall();
