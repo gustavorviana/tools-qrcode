@@ -48,4 +48,12 @@ for (const file of await readdir('public')) {
   await copyFile(path.join('public', file), path.join(OUT, file));
 }
 
+// 5) Copia o WASM do leitor de código de barras (zxing-wasm) para a raiz do dist.
+// É o único binário que não dá para embutir no HTML; o service worker o cacheia
+// (precache) para funcionar offline. O barcode.ts o carrega por './zxing_reader.wasm'.
+await copyFile(
+  'node_modules/zxing-wasm/dist/reader/zxing_reader.wasm',
+  path.join(OUT, 'zxing_reader.wasm'),
+);
+
 console.log(`Build OK -> ${OUT}/index.html (${Math.round(Buffer.byteLength(html) / 1024)}KB)`);

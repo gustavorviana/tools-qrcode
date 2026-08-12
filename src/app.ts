@@ -12,7 +12,7 @@ import type { ShapeType } from 'qr-code-styling';
 import { escWifi, escVcard, icalDate, fmtIcalDate, maskPhoneBR, maskPhoneWa } from './format';
 import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
-import { SHARE_DEFAULTS, buildShareQuery, parseShareQuery } from './qr/share';
+import { SHARE_DEFAULTS, PNG_SIZES, buildShareQuery, parseShareQuery } from './qr/share';
 import type { ShareParams } from './qr/share';
 
 /* ---------- Helpers de DOM ---------- */
@@ -519,6 +519,7 @@ export class App {
     if (!this.lastSVG) return;
     $('qrModalBox').innerHTML = this.lastSVG;
     $('qrModalMeta').textContent = $('qrMeta').textContent;
+    this.applyModalSize();
     $('qrModal').hidden = false;
     document.body.style.overflow = 'hidden';
   }
@@ -528,10 +529,37 @@ export class App {
   }
 
   /* ---------- Exportação ---------- */
+  /**
+   * Resolução do PNG (px). Fonte única de verdade: define a resolução do export
+   * e também o tamanho com que o QR é exibido ampliado no modal. O SVG é vetorial,
+   * então isto nunca altera a geração — só o export e a exibição.
+   */
+  private exportPx: number = SHARE_DEFAULTS.size;
+
+  /** Largura de exibição (px) do QR no modal para cada resolução escolhida. */
+  private static readonly MODAL_W: Record<number, number> = {
+    512: 220, 1024: 300, 2048: 380, 4096: 460,
+  };
+
+  /** Ajusta a largura do QR ampliado no modal conforme o tamanho escolhido. */
+  private applyModalSize(): void {
+    const svg = document.querySelector('#qrModalBox svg') as SVGElement | null;
+    if (svg) svg.style.width = `min(${App.MODAL_W[this.exportPx] ?? 300}px, 88vw)`;
+  }
+
+  /** Atualiza o tamanho do PNG, reflete no select e redimensiona a imagem do modal. */
+  setPngSize(px: number): void {
+    if (!(PNG_SIZES as readonly number[]).includes(px)) return;
+    this.exportPx = px;
+    const el = document.getElementById('pngSize') as HTMLSelectElement | null;
+    if (el) el.value = String(px);
+    this.applyModalSize();
+  }
+
   async downloadPNG(): Promise<void> {
     if (!this.lastSVG) return;
     try {
-      const cv = await this.designer.toCanvas(1024);
+      const cv = await this.designer.toCanvas(this.exportPx);
       const a = document.createElement('a');
       a.download = 'qrcode.png';
       a.href = cv.toDataURL('image/png');
@@ -551,7 +579,7 @@ export class App {
   async shareQR(): Promise<void> {
     if (!this.lastSVG) return;
     try {
-      const cv = await this.designer.toCanvas(1024);
+      const cv = await this.designer.toCanvas(this.exportPx);
       if (!navigator.canShare) { this.downloadPNG(); return; }
       const blob = await new Promise<Blob | null>((r) => cv.toBlob(r, 'image/png'));
       if (!blob) return;
@@ -572,7 +600,7 @@ export class App {
     const q = buildShareQuery({
       text, ecl: this.designer.ecl, fg, bg,
       shape: this.designer.shape, qrShape: this.designer.qrShape,
-      frame: this.frameStyle, caption: this.caption,
+      frame: this.frameStyle, caption: this.caption, size: this.exportPx,
     });
     return location.origin + location.pathname + '#' + q;
   }
@@ -607,6 +635,7 @@ export class App {
     this.frameStyle = sp.frame ?? SHARE_DEFAULTS.frame;
     this.caption = sp.caption ?? SHARE_DEFAULTS.caption;
     this.designer.frame = createFrame(this.frameStyle, this.caption);
+    this.setPngSize(sp.size ?? SHARE_DEFAULTS.size);
     let svg: string;
     try { svg = await this.designer.toSVG(); }
     catch { return; } // conteúdo inválido/grande demais → segue app normal
@@ -658,6 +687,7 @@ export class App {
     this.setFrame(SHARE_DEFAULTS.frame);
     this.setCaption(SHARE_DEFAULTS.caption);
     $i('c_caption').value = SHARE_DEFAULTS.caption;
+    this.setPngSize(SHARE_DEFAULTS.size);
     this.removeLogo();
   }
 
@@ -740,8 +770,11 @@ export class App {
       const bmp = await createImageBitmap(file);
       const value = await this.reader.decode(bmp, bmp.width, bmp.height, { mode: this.readMode, thorough: true });
       if (value != null) this.showResult(value);
-      else errEl.textContent = `Nenhum ${this.modeLabel()} encontrado na imagem.`;
+      else { this.hideResult(); errEl.textContent = `Nenhum ${this.modeLabel()} encontrado na imagem.`; }
     } catch (e) {
+      // Falha ao carregar/ler a imagem: descarta o resultado anterior para não
+      // deixar um valor obsoleto de outra leitura na tela.
+      this.hideResult();
       errEl.textContent = 'Falha ao ler a imagem: ' + ((e as Error).message || e);
     }
   }
@@ -752,6 +785,13 @@ export class App {
     renderDecoded($('resultDetail'), text);
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     toast('QR Code lido!');
+  }
+
+  /** Oculta o card de resultado (usado quando uma nova leitura falha). */
+  private hideResult(): void {
+    const card = $('resultCard');
+    card.style.display = 'none';
+    $('resultDetail').innerHTML = '';
   }
 
   /* ---------- Localização / mapa ---------- */
@@ -1035,5 +1075,6 @@ export class App {
     w.setCaption = (v: string) => this.setCaption(v);
     w.onLogo = (ev: Event) => this.onLogo(ev);
     w.removeLogo = () => this.removeLogo();
+    w.setPngSize = (px: number) => this.setPngSize(px);
   }
 }

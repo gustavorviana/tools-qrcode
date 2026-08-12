@@ -20,9 +20,9 @@
     "preview:online": "node tunnel.mjs"
   },
   "dependencies": {
-    "@zxing/library": "^0.23.0",
     "jsqr": "1.4.0",
-    "qr-code-styling": "^1.9.2"
+    "qr-code-styling": "^1.9.2",
+    "zxing-wasm": "^3.1.2"
   },
   "devDependencies": {
     "esbuild": "^0.24.2",

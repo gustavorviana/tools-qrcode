@@ -327,7 +327,14 @@
         <div class="step-head"><span class="step-num">3</span> Baixar</div>
         <div class="qr-preview" id="qrPreview" onclick="openModal()" title="Toque para ampliar"></div>
         <div class="hint" style="text-align:center;margin-top:0">Toque no QR para ampliar</div>
-        <div class="grid2">
+        <label class="fld" for="pngSize">Tamanho do PNG</label>
+        <select id="pngSize" onchange="setPngSize(Number(this.value))">
+          <option value="512">512 × 512 px</option>
+          <option value="1024" selected>1024 × 1024 px</option>
+          <option value="2048">2048 × 2048 px</option>
+          <option value="4096">4096 × 4096 px</option>
+        </select>
+        <div class="grid2" style="margin-top:10px">
           <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>
           <button class="btn ghost" onclick="downloadSVG()">Baixar SVG</button>
         </div>
@@ -526,7 +533,7 @@
       <button class="modal-close" onclick="closeModal()" aria-label="Fechar">✕</button>
       <div class="modal-qr"><div id="qrModalBox" class="qr-preview modal-svg"></div></div>
       <div class="modal-meta" id="qrModalMeta"></div>
-      <div class="grid2">
+      <div class="grid2" style="margin-top:10px">
         <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>
         <button class="btn ok" onclick="shareQR()">Compartilhar</button>
       </div>

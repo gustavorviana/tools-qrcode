@@ -2,7 +2,7 @@
    Único arquivo .js "separado" exigido pela plataforma (SW não pode ser inline).
    Toda a lógica do app está embutida no index.html. */
 const CACHE_PREFIX = 'qr-utils-';
-const CACHE = CACHE_PREFIX + 'v1.2';
+const CACHE = CACHE_PREFIX + 'v1.3';
 // Cache transitório para a imagem recebida via share_target (não é versionado
 // nem removido na limpeza de versões).
 const SHARE_CACHE = CACHE_PREFIX + 'share';
@@ -19,6 +19,9 @@ const ASSETS = [
   './og-image.png',
   './screenshot-narrow.png',
   './screenshot-wide.png',
+  // Leitor de código de barras (ZXing-C++ em WebAssembly). Precache para que a
+  // leitura funcione offline já na primeira carga.
+  './zxing_reader.wasm',
 ];
 
 self.addEventListener('install', (e) => {

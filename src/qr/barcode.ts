@@ -1,13 +1,12 @@
 /*
  * Decodificação de código de barras (fallback do leitor, após o QR falhar).
- * Usa o ZXing (JS puro, embutido) sobre os pixels já rasterizados — funciona
- * em qualquer navegador, inclusive nos desktops onde a BarcodeDetector nativa
- * não existe (Chrome/Edge no Windows/Linux, Firefox). Sem DOM: recebe os pixels.
+ * Usa o ZXing-C++ compilado para WebAssembly (zxing-wasm) — o motor atual e
+ * mantido, que lê muito mais simbologias que o antigo port JS (GS1 DataBar,
+ * MaxiCode, Micro QR, rMQR, além dos usuais). Roda 100% no cliente; o .wasm é
+ * servido pela própria origem (offline, sem CDN) e cacheado pelo service worker.
  */
-import {
-  BinaryBitmap, HybridBinarizer, RGBLuminanceSource,
-  MultiFormatReader, DecodeHintType, BarcodeFormat,
-} from '@zxing/library';
+import { readBarcodes, prepareZXingModule } from 'zxing-wasm/reader';
+import type { ReaderOptions, ZXingModuleOverrides } from 'zxing-wasm/reader';
 
 /** Pixels RGBA já rasterizados (formato do `ImageData`, mas sem exigir DOM). */
 export interface Pixels {
@@ -16,65 +15,50 @@ export interface Pixels {
   height: number;
 }
 
-/* Formatos tentados (o QR já foi tentado antes, então fica de fora). */
-const FORMATS = [
-  BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
-  BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.CODE_93,
-  BarcodeFormat.ITF, BarcodeFormat.CODABAR,
-  BarcodeFormat.DATA_MATRIX, BarcodeFormat.PDF_417, BarcodeFormat.AZTEC,
-];
-
-const hints = (thorough: boolean): Map<DecodeHintType, unknown> => {
-  const h = new Map<DecodeHintType, unknown>();
-  h.set(DecodeHintType.POSSIBLE_FORMATS, FORMATS);
-  if (thorough) h.set(DecodeHintType.TRY_HARDER, true);
-  return h;
-};
-
-/** Converte RGBA → luminância (média com peso no verde) → bitmap binarizado do ZXing. */
-function toBitmap(img: Pixels): BinaryBitmap {
-  const { data, width, height } = img;
-  const lum = new Uint8ClampedArray(width * height);
-  for (let i = 0, j = 0; j < lum.length; i += 4, j++) {
-    lum[j] = (data[i] + 2 * data[i + 1] + data[i + 2]) >> 2;
-  }
-  return new BinaryBitmap(new HybridBinarizer(new RGBLuminanceSource(lum, width, height)));
-}
-
-// Leitor reutilizado no loop da câmera (setHints uma vez → decodeWithState é rápido).
-let fastReader: MultiFormatReader | null = null;
+/*
+ * Configuração do módulo WASM. Feita uma única vez; a instanciação em si é
+ * preguiçosa (só no primeiro `readBarcodes`). `formats: []` = TODOS os formatos
+ * que o ZXing-C++ suporta.
+ */
+let configured = false;
 
 /**
- * Silencia `console.warn` durante `fn` (síncrona). O MultiFormatReader do ZXing
- * loga uma NotFoundException para cada leitor que não casa — um bug conhecido do
- * port JS (o `instanceof ReaderException` interno falha). Sem isto, cada quadro
- * da câmera sem código poluiria o console do navegador (e a saída dos testes).
+ * Ajusta de onde o `.wasm` é carregado. Em produção aponta para a própria origem
+ * (offline). Os testes injetam o binário direto via `wasmBinary` (o Node não tem
+ * `fetch` de arquivo local). Chame antes do primeiro `decodeBarcode`.
  */
-function quiet<T>(fn: () => T): T {
-  const warn = console.warn;
-  console.warn = () => { /* engole o ruído do ZXing */ };
-  try { return fn(); } finally { console.warn = warn; }
+export function configureBarcodeReader(overrides: ZXingModuleOverrides): void {
+  prepareZXingModule({ overrides });
+  configured = true;
 }
+
+function ensureConfigured(): void {
+  if (configured) return;
+  configureBarcodeReader({
+    // Por padrão a lib buscaria o .wasm num CDN (jsDelivr). Redirecionamos para o
+    // arquivo servido pela própria origem — requisito offline do PWA.
+    locateFile: (path: string, prefix: string) => (path.endsWith('.wasm') ? 'zxing_reader.wasm' : prefix + path),
+  });
+}
+
+/* Imagem parada (upload): esforço máximo. Câmera: leve, para não travar o loop. */
+const OPTS_THOROUGH: ReaderOptions = { formats: [], tryHarder: true, maxNumberOfSymbols: 1 };
+const OPTS_FAST: ReaderOptions = {
+  formats: [], tryHarder: false, tryDownscale: false, maxNumberOfSymbols: 1,
+};
 
 /**
  * Tenta decodificar um código de barras dos pixels. Retorna o texto ou `null`.
- * `thorough` (imagens paradas, ex.: upload) liga o TRY_HARDER — mais robusto,
- * porém mais lento; no loop da câmera fica desligado para não travar.
+ * `thorough` (imagens paradas, ex.: upload) liga o esforço extra — mais robusto,
+ * porém mais lento; no loop da câmera fica leve.
  */
-export function decodeBarcode(img: Pixels, thorough = false): string | null {
-  const bitmap = toBitmap(img);
+export async function decodeBarcode(img: Pixels, thorough = false): Promise<string | null> {
+  ensureConfigured();
   try {
-    return quiet(() => {
-      if (thorough) {
-        return new MultiFormatReader().decode(bitmap, hints(true)).getText() || null;
-      }
-      if (!fastReader) {
-        fastReader = new MultiFormatReader();
-        fastReader.setHints(hints(false));
-      }
-      return fastReader.decodeWithState(bitmap).getText() || null;
-    });
+    const results = await readBarcodes(img as unknown as ImageData, thorough ? OPTS_THOROUGH : OPTS_FAST);
+    const hit = results.find((r) => r.isValid && r.text);
+    return hit ? hit.text : null;
   } catch {
-    return null; // NotFoundException e afins → nenhum código no quadro
+    return null; // nenhum código no quadro / erro de leitura
   }
 }

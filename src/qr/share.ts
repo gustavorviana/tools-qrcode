@@ -16,6 +16,7 @@ export interface ShareParams {
   qrShape?: ShapeType;
   frame?: FrameStyle;
   caption?: string;
+  size?: number;
 }
 
 /** Estado completo da personalização atual, usado para montar o link. */
@@ -28,6 +29,7 @@ export interface ShareState {
   qrShape: ShapeType;
   frame: FrameStyle;
   caption: string;
+  size: number;
 }
 
 /** Padrões da personalização — o que estiver assim é omitido do link. */
@@ -39,7 +41,11 @@ export const SHARE_DEFAULTS = {
   qrShape: 'square' as ShapeType,
   frame: 'none' as FrameStyle,
   caption: 'ESCANEIE',
+  size: 1024,
 };
+
+/** Resoluções de PNG oferecidas (px); o link só aceita uma destas. */
+export const PNG_SIZES = [512, 1024, 2048, 4096] as const;
 
 /**
  * Monta o fragmento `q=<texto>&…` do link, omitindo o que está no padrão.
@@ -57,6 +63,7 @@ export function buildShareQuery(s: ShareState): string {
     p.set('fr', s.frame);
     if (s.caption && s.caption !== SHARE_DEFAULTS.caption) p.set('cap', s.caption);
   }
+  if (s.size !== SHARE_DEFAULTS.size) p.set('sz', String(s.size));
   return p.toString();
 }
 
@@ -73,6 +80,10 @@ export function parseShareQuery(raw: string): ShareParams | null {
   };
   const oneOf = <T extends string>(v: string | null, allowed: readonly T[]): T | undefined =>
     v != null && (allowed as readonly string[]).includes(v) ? (v as T) : undefined;
+  const size = (v: string | null): number | undefined => {
+    const n = Number(v);
+    return (PNG_SIZES as readonly number[]).includes(n) ? n : undefined;
+  };
 
   return {
     text,
@@ -83,5 +94,6 @@ export function parseShareQuery(raw: string): ShareParams | null {
     qrShape: oneOf(p.get('qs'), ['square', 'circle'] as const),
     frame: oneOf(p.get('fr'), ['none', 'corners', 'border', 'label'] as const),
     caption: p.get('cap') ?? undefined,
+    size: size(p.get('sz')),
   };
 }

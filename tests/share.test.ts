@@ -4,7 +4,7 @@ import { buildShareQuery, parseShareQuery, SHARE_DEFAULTS, type ShareState } fro
 const baseState = (over: Partial<ShareState> = {}): ShareState => ({
   text: 'https://exemplo.com',
   ecl: 'MEDIUM', fg: '#0f172a', bg: '#ffffff',
-  shape: 'solid', qrShape: 'square', frame: 'none', caption: 'ESCANEIE',
+  shape: 'solid', qrShape: 'square', frame: 'none', caption: 'ESCANEIE', size: 1024,
   ...over,
 });
 
@@ -35,6 +35,11 @@ describe('buildShareQuery', () => {
   it('a cor é comparada sem diferenciar maiúsculas', () => {
     expect(new URLSearchParams(buildShareQuery(baseState({ fg: '#0F172A' }))).get('fg')).toBeNull();
   });
+
+  it('o tamanho só entra quando difere do padrão (1024)', () => {
+    expect(new URLSearchParams(buildShareQuery(baseState())).get('sz')).toBeNull();
+    expect(new URLSearchParams(buildShareQuery(baseState({ size: 2048 }))).get('sz')).toBe('2048');
+  });
 });
 
 describe('parseShareQuery', () => {
@@ -62,6 +67,12 @@ describe('parseShareQuery', () => {
 
   it('aceita hex de 3 dígitos e normaliza para minúsculas', () => {
     expect(parseShareQuery('q=x&fg=ABC')?.fg).toBe('#abc');
+  });
+
+  it('lê o tamanho só quando é uma resolução válida', () => {
+    expect(parseShareQuery('q=x&sz=2048')?.size).toBe(2048);
+    expect(parseShareQuery('q=x&sz=1234')?.size).toBeUndefined();
+    expect(parseShareQuery('q=x')?.size).toBeUndefined();
   });
 
   it('round-trip: build → parse recupera as opções não-padrão', () => {
