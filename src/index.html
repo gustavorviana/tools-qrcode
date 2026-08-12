@@ -414,9 +414,9 @@
             <a href="https://github.com/cozmo/jsQR" target="_blank" rel="noopener">github.com/cozmo/jsQR</a>
           </li>
           <li>
-            <div class="credit-name">ZXing <span class="lic">Apache-2.0</span></div>
-            <span class="desc">Leitura de código de barras (EAN, UPC, Code 128, etc.), embutida no app.</span>
-            <a href="https://github.com/zxing-js/library" target="_blank" rel="noopener">github.com/zxing-js/library</a>
+            <div class="credit-name">zxing-wasm · ZXing-C++ <span class="lic">Apache-2.0 · MIT</span></div>
+            <span class="desc">Leitura de código de barras (ZXing-C++ compilado para WebAssembly), embutida no app e executada 100% no dispositivo.</span>
+            <a href="https://github.com/Sec-ant/zxing-wasm" target="_blank" rel="noopener">github.com/Sec-ant/zxing-wasm</a>
           </li>
           <li>
             <div class="credit-name">QR Code generator · Project Nayuki <span class="lic">MIT</span></div>
@@ -424,6 +424,59 @@
             <a href="https://www.nayuki.io/page/qr-code-generator-library" target="_blank" rel="noopener">nayuki.io/page/qr-code-generator-library</a>
           </li>
         </ul>
+      </div>
+
+      <div class="card">
+        <label class="fld">Formatos de código de barras suportados na leitura</label>
+        <p class="muted" style="margin:0 0 12px;font-size:13.5px;line-height:1.5">
+          Além do QR Code, o leitor reconhece as simbologias abaixo (via ZXing-C++). Toque para expandir.
+        </p>
+
+        <details class="adv">
+          <summary>Matriciais (2D)</summary>
+          <div class="adv-body">
+            <ul class="formats">
+              <li>QR Code</li>
+              <li>Micro QR Code</li>
+              <li>rMQR Code</li>
+              <li>Aztec</li>
+              <li>Aztec Rune</li>
+              <li>Data Matrix</li>
+              <li>PDF417</li>
+              <li>Compact PDF417</li>
+              <li>MicroPDF417</li>
+              <li>MaxiCode</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="adv">
+          <summary>Lineares (1D)</summary>
+          <div class="adv-body">
+            <ul class="formats">
+              <li>EAN-13</li>
+              <li>EAN-8</li>
+              <li>UPC-A</li>
+              <li>UPC-E</li>
+              <li>ISBN</li>
+              <li>Code 39</li>
+              <li>Code 93</li>
+              <li>Code 128</li>
+              <li>Code 32</li>
+              <li>Codabar</li>
+              <li>ITF</li>
+              <li>ITF-14</li>
+              <li>PZN</li>
+              <li>Telepen</li>
+              <li>GS1 DataBar</li>
+              <li>GS1 DataBar Omni</li>
+              <li>GS1 DataBar Stacked</li>
+              <li>GS1 DataBar Limited</li>
+              <li>GS1 DataBar Expanded</li>
+              <li>DX Film Edge</li>
+            </ul>
+          </div>
+        </details>
       </div>
 
       <div class="card">
