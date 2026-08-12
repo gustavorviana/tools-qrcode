@@ -138,6 +138,7 @@
   .dkey{color:var(--muted);flex:none;min-width:88px;font-weight:600}
   .dval{color:var(--text);word-break:break-word;flex:1}
   .dval.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+  .dnote{padding:10px 14px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.5;color:var(--muted)}
   .detail-actions{display:grid;gap:10px;margin-top:12px}
   .detail-actions.two{grid-template-columns:1fr 1fr}
 

@@ -65,6 +65,12 @@ function drow(key: string, value: string | undefined, mono = false): HTMLElement
     el('span', { class: 'dval' + (mono ? ' mono' : '') }, value ?? ''));
 }
 
+/** Formata um valor Pix (ex.: "10.50") como moeda BRL; devolve o cru se inválido. */
+function fmtBRL(v: string): string {
+  const n = Number(v);
+  return isFinite(n) ? n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : v;
+}
+
 function downloadText(filename: string, mime: string, content: string): void {
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -82,7 +88,7 @@ const KIND: Record<DecodedType, { i: string; k: string }> = {
   text: { i: '≡', k: 'Texto' }, link: { i: '🔗', k: 'Link' }, tel: { i: '📞', k: 'Telefone' },
   sms: { i: '💬', k: 'SMS' }, email: { i: '✉️', k: 'E-mail' }, wifi: { i: '📶', k: 'Wi-Fi' },
   geo: { i: '📍', k: 'Localização' }, vcard: { i: '👤', k: 'Contato' }, event: { i: '📅', k: 'Evento' },
-  whatsapp: { i: '💚', k: 'WhatsApp' },
+  whatsapp: { i: '💚', k: 'WhatsApp' }, pix: { i: '💠', k: 'Pix' },
 };
 
 interface Action { label: string; cls: string; fn: () => void; }
@@ -148,6 +154,33 @@ function renderDecoded(container: HTMLElement, raw: string): void {
       if (d.msg) rows.push(drow('Mensagem', d.msg));
       actions.push({ label: 'Abrir conversa', cls: 'ok', fn: () => openUrl(d.url!) });
       break;
+    case 'pix': {
+      const brl = d.currency && d.currency !== '986';
+      rows.push(drow('Tipo', d.dynamic ? 'Pix dinâmico' : 'Pix estático'));
+      if (d.name) rows.push(drow('Recebedor', d.name));
+      if (d.pixKey) rows.push(drow('Chave', d.pixKey, true));
+      if (d.amount) rows.push(drow('Valor', brl ? d.amount : fmtBRL(d.amount)));
+      if (brl) rows.push(drow('Moeda', d.currency!));
+      if (d.desc) rows.push(drow('Descrição', d.desc));
+      if (d.city) rows.push(drow('Cidade', d.city));
+      if (d.cep) rows.push(drow('CEP', d.cep));
+      if (d.mcc && d.mcc !== '0000') rows.push(drow('Categoria (MCC)', d.mcc));
+      if (d.billNumber) rows.push(drow('Documento', d.billNumber));
+      if (d.storeLabel) rows.push(drow('Loja', d.storeLabel));
+      if (d.terminalLabel) rows.push(drow('Terminal', d.terminalLabel));
+      if (d.purpose) rows.push(drow('Finalidade', d.purpose));
+      if (d.txid) rows.push(drow('Identificador', d.txid, true));
+      if (d.valid === false) rows.push(drow('Verificação', 'CRC inválido — código possivelmente corrompido'));
+      // A URL do Pix dinâmico é um link de acesso à cobrança (funciona como um token):
+      // não a exibimos nem a acessamos. Deixamos só um aviso de não compartilhar os dados.
+      rows.push(el('div', { class: 'dnote' },
+        '🔒 Este código pode conter dados pessoais'
+        + (d.url ? ' e um link de acesso à cobrança' : '')
+        + '. Evite compartilhar o código Pix ou capturas de tela com terceiros.'));
+      actions.push({ label: 'Copiar código Pix', cls: 'ok', fn: () => copyText(raw) });
+      if (d.pixKey) actions.push({ label: 'Copiar chave', cls: 'ghost', fn: () => copyText(d.pixKey!) });
+      break;
+    }
     default:
       rows.push(el('div', { class: 'drow' },
         el('span', { class: 'dval', style: 'white-space:pre-wrap' }, d.text ?? '')));
@@ -156,6 +189,7 @@ function renderDecoded(container: HTMLElement, raw: string): void {
   const title = d.type === 'vcard' ? (d.name || 'Contato')
     : d.type === 'event' ? (d.title || 'Evento')
     : d.type === 'wifi' ? d.ssid
+    : d.type === 'pix' ? (d.name || d.pixKey || 'Pix')
     : d.type === 'text' ? ''
     : (d.url || d.number || d.to || (d.lat ? d.lat + ', ' + d.lng : '') || meta.k);
 

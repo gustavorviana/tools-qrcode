@@ -77,4 +77,86 @@ describe('parseDecoded', () => {
     expect(d.type).toBe('whatsapp');
     expect(d.number).toBe('5511999998888');
   });
+
+  it('Pix estático extrai chave, recebedor, cidade e valor; ignora txid "***"', () => {
+    const pix = '000201' + '010211'
+      + '2638' + '0014br.gov.bcb.pix' + '0116fulano@email.com'
+      + '52040000' + '5303986' + '540510.50' + '5802BR'
+      + '5913Fulano de Tal' + '6008BRASILIA' + '62070503***' + '6304FFFF';
+    const d = parseDecoded(pix);
+    expect(d.type).toBe('pix');
+    expect(d.dynamic).toBe(false);
+    expect(d.pixKey).toBe('fulano@email.com');
+    expect(d.name).toBe('Fulano de Tal');
+    expect(d.city).toBe('BRASILIA');
+    expect(d.amount).toBe('10.50');
+    expect(d.txid).toBe('');
+  });
+
+  it('Pix dinâmico traz URL no lugar de chave/valor', () => {
+    const pix = '00020101021226800014br.gov.bcb.pix2558pix.exemplo.com/qr/v2/'
+      + '00000000-0000-0000-0000-0000000000005204000053039865802BR'
+      + '5920EMPRESA EXEMPLO LTDA6009SAO PAULO62070503***6304FB58';
+    const d = parseDecoded(pix);
+    expect(d.type).toBe('pix');
+    expect(d.dynamic).toBe(true);
+    expect(d.pixKey).toBe('');
+    expect(d.amount).toBe('');
+    expect(d.name).toBe('EMPRESA EXEMPLO LTDA');
+    expect(d.city).toBe('SAO PAULO');
+    expect(d.url).toBe('https://pix.exemplo.com/qr/v2/00000000-0000-0000-0000-000000000000');
+  });
+
+  it('Pix dinâmico com valor embutido e CRC válido', () => {
+    const pix = '00020101021226800014br.gov.bcb.pix2558pix.exemplo.com/qr/v2/'
+      + '11111111-1111-1111-1111-111111111111520400005303986540530.005802BR'
+      + '5915EMPRESA EXEMPLO6009SAO PAULO62070503***63048FFD';
+    const d = parseDecoded(pix);
+    expect(d.type).toBe('pix');
+    expect(d.dynamic).toBe(true);
+    expect(d.amount).toBe('30.00');
+    expect(d.name).toBe('EMPRESA EXEMPLO');
+    expect(d.url).toBe('https://pix.exemplo.com/qr/v2/11111111-1111-1111-1111-111111111111');
+    expect(d.valid).toBe(true);
+  });
+
+  it('CRC inválido é sinalizado quando o payload é adulterado', () => {
+    const bom = '000201' + '010211'
+      + '2638' + '0014br.gov.bcb.pix' + '0116fulano@email.com'
+      + '52040000' + '5303986' + '540510.50' + '5802BR'
+      + '5913Fulano de Tal' + '6008BRASILIA' + '62070503***' + '6304FFFF';
+    // "6304FFFF" é um CRC falso — deve reprovar.
+    expect(parseDecoded(bom).valid).toBe(false);
+  });
+
+  it('Pix estático extrai CEP, MCC, documento, loja, terminal e finalidade', () => {
+    const mai = '0014br.gov.bcb.pix' + '0111chave123456';                 // conta do recebedor
+    const add = '0104NF01' + '0303L07' + '0703T09' + '0806compra';        // subcampos do 62
+    const tlv = (id: string, v: string): string => id + String(v.length).padStart(2, '0') + v;
+    const pix = '000201' + '010211'
+      + tlv('26', mai) + '52045411' + '5303986' + '540530.00' + '5802BR'
+      + tlv('59', 'Loja1') + tlv('60', 'BRASILIA') + tlv('61', '01310100')
+      + tlv('62', add) + '6304FFFF';
+    const d = parseDecoded(pix);
+    expect(d.type).toBe('pix');
+    expect(d.cep).toBe('01310100');
+    expect(d.mcc).toBe('5411');
+    expect(d.billNumber).toBe('NF01');
+    expect(d.storeLabel).toBe('L07');
+    expect(d.terminalLabel).toBe('T09');
+    expect(d.purpose).toBe('compra');
+  });
+
+  it('Pix com descrição e identificador preenchidos', () => {
+    const pix = '000201' + '010211'
+      + '2646' + '0014br.gov.bcb.pix' + '0111chave123456' + '0209Pagamento'
+      + '52040000' + '5303986' + '5802BR'
+      + '5904Loja' + '6008BRASILIA' + '62120508ABC12345' + '6304FFFF';
+    const d = parseDecoded(pix);
+    expect(d.type).toBe('pix');
+    expect(d.pixKey).toBe('chave123456');
+    expect(d.desc).toBe('Pagamento');
+    expect(d.txid).toBe('ABC12345');
+    expect(d.amount).toBe('');
+  });
 });

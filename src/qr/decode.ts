@@ -5,7 +5,7 @@
  */
 import { icalGet } from '../format';
 
-export type DecodedType = 'text' | 'link' | 'tel' | 'sms' | 'email' | 'wifi' | 'geo' | 'vcard' | 'event' | 'whatsapp';
+export type DecodedType = 'text' | 'link' | 'tel' | 'sms' | 'email' | 'wifi' | 'geo' | 'vcard' | 'event' | 'whatsapp' | 'pix';
 
 export interface Decoded {
   type: DecodedType;
@@ -13,11 +13,88 @@ export interface Decoded {
   ssid?: string; sec?: string; pass?: string; hidden?: boolean;
   lat?: string; lng?: string; name?: string; tel?: string; email?: string;
   org?: string; title?: string; loc?: string; start?: string; end?: string; text?: string;
+  pixKey?: string; city?: string; amount?: string; txid?: string; desc?: string; dynamic?: boolean;
+  cep?: string; currency?: string; mcc?: string; billNumber?: string; storeLabel?: string;
+  terminalLabel?: string; purpose?: string; valid?: boolean;
+}
+
+/**
+ * Valida o CRC16 (CCITT-FALSE, polinômio 0x1021, init 0xFFFF) de um BR Code.
+ * O CRC são os 4 hex finais, calculados sobre todo o resto — inclusive o "6304"
+ * que o antecede. Serve só para detectar leitura corrompida; não acessa a rede.
+ */
+function pixCrcValid(payload: string): boolean {
+  if (payload.length < 8 || payload.slice(-8, -4) !== '6304') return false;
+  let crc = 0xffff;
+  const base = payload.slice(0, -4);
+  for (let k = 0; k < base.length; k++) {
+    crc ^= base.charCodeAt(k) << 8;
+    for (let b = 0; b < 8; b++) {
+      crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0') === payload.slice(-4).toUpperCase();
+}
+
+/**
+ * Faz o parse de um payload EMV (BR Code / Pix) em pares `id → valor`. O formato
+ * é TLV: 2 dígitos de id, 2 de comprimento e o valor. Ignora lixo mal-formado.
+ */
+function parseEmv(s: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  let i = 0;
+  while (i + 4 <= s.length) {
+    const id = s.slice(i, i + 2);
+    const len = parseInt(s.slice(i + 2, i + 4), 10);
+    if (isNaN(len) || i + 4 + len > s.length) break;
+    out[id] = s.slice(i + 4, i + 4 + len);
+    i += 4 + len;
+  }
+  return out;
 }
 
 /** Interpreta o texto bruto de um QR e devolve o tipo + campos extraídos. */
 export function parseDecoded(raw: string): Decoded {
   const t = raw.trim();
+  // Pix / BR Code (EMV): começa com o indicador de formato "000201" e traz o
+  // identificador do arranjo Pix. Extraímos só os campos que existirem.
+  if (/^000201/.test(t) && /br\.gov\.bcb\.pix/i.test(t)) {
+    const emv = parseEmv(t);
+    // Conta do recebedor (Merchant Account Information): fica em algum id de 26 a 51;
+    // pegamos o que contém o GUI do Pix.
+    let mai = '';
+    for (let id = 26; id <= 51; id++) {
+      const v = emv[String(id).padStart(2, '0')];
+      if (v && /br\.gov\.bcb\.pix/i.test(v)) { mai = v; break; }
+    }
+    const sub = parseEmv(mai);           // subcampos da conta do recebedor (GUI/chave/URL)
+    const add = parseEmv(emv['62'] || ''); // "Additional Data Field Template"
+    const txid = add['05'] || '';
+    const url = sub['25'] || '';
+    // Tipo pelo "Point of Initiation Method" (id 01): 12 = dinâmico, 11 = estático.
+    // Ausente = estático (reutilizável); a presença da URL (subcampo 25) confirma dinâmico.
+    const dynamic = emv['01'] === '12' || !!url;
+    return {
+      type: 'pix',
+      dynamic,
+      valid: pixCrcValid(t),
+      pixKey: sub['01'] || '',       // chave (só no Pix estático)
+      desc: sub['02'] || '',         // informação adicional do recebedor
+      url: url ? (/^https?:\/\//i.test(url) ? url : 'https://' + url) : '',
+      name: emv['59'] || '',         // nome do recebedor
+      city: emv['60'] || '',         // cidade
+      cep: emv['61'] || '',          // CEP
+      amount: emv['54'] || '',       // valor
+      currency: emv['53'] || '',     // moeda (986 = BRL)
+      mcc: emv['52'] || '',          // categoria do estabelecimento (MCC)
+      billNumber: add['01'] || '',   // número do documento/fatura
+      storeLabel: add['03'] || '',   // identificação da loja
+      terminalLabel: add['07'] || '', // identificação do terminal/caixa
+      purpose: add['08'] || '',      // finalidade da transação
+      // "***" é o marcador de "sem txid" no Pix estático; tratamos como ausente.
+      txid: txid && txid !== '***' ? txid : '',
+    };
+  }
   if (/^BEGIN:VCARD/i.test(t)) {
     return { type: 'vcard',
       name: icalGet(t, 'FN') || icalGet(t, 'N').replace(/;+/g, ' ').trim(),
