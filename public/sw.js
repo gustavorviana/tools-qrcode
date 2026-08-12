@@ -2,7 +2,10 @@
    Único arquivo .js "separado" exigido pela plataforma (SW não pode ser inline).
    Toda a lógica do app está embutida no index.html. */
 const CACHE_PREFIX = 'qr-utils-';
-const CACHE = CACHE_PREFIX + 'v1.1';
+const CACHE = CACHE_PREFIX + 'v1.2';
+// Cache transitório para a imagem recebida via share_target (não é versionado
+// nem removido na limpeza de versões).
+const SHARE_CACHE = CACHE_PREFIX + 'share';
 // Nota: usamos './' (URL canônica, responde 200) e NÃO './index.html', que os
 // servidores de estáticos (serve, Cloudflare Pages) redirecionam (301) para './'
 // — e a Cache API não armazena respostas redirecionadas.
@@ -14,6 +17,8 @@ const ASSETS = [
   './icon-512.png',
   './icon-maskable-512.png',
   './og-image.png',
+  './screenshot-narrow.png',
+  './screenshot-wide.png',
 ];
 
 self.addEventListener('install', (e) => {
@@ -35,7 +40,7 @@ self.addEventListener('activate', (e) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE)
+          .filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE && k !== SHARE_CACHE)
           .map((k) => caches.delete(k))
       )
     ).then(() => self.clients.claim())
@@ -44,12 +49,31 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;
-  if (req.method !== 'GET') return;
 
-  // Só intercepta requisições da própria origem.
   let url;
   try { url = new URL(req.url); } catch { return; }
   if (url.origin !== self.location.origin) return;
+
+  // share_target: outro app compartilhou uma imagem (POST multipart). Guardamos
+  // o arquivo no cache e redirecionamos para a página, que o lê e decodifica.
+  if (req.method === 'POST' && url.pathname.endsWith('/share-target')) {
+    e.respondWith((async () => {
+      try {
+        const form = await req.formData();
+        const file = form.get('image');
+        if (file && file.size) {
+          const cache = await caches.open(SHARE_CACHE);
+          await cache.put('shared-image', new Response(file, {
+            headers: { 'content-type': file.type || 'application/octet-stream' },
+          }));
+        }
+      } catch { /* imagem ausente/ilegível → segue para a página mesmo assim */ }
+      return Response.redirect(new URL('./?share-target=1', self.registration.scope).href, 303);
+    })());
+    return;
+  }
+
+  if (req.method !== 'GET') return;
 
   // Navegação (abrir/recarregar a página): tenta a rede e cai para o
   // index.html cacheado quando offline. Cobre qualquer URL (/, /index.html, etc.).

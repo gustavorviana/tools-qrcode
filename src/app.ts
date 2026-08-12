@@ -194,6 +194,10 @@ const isStandalone = (): boolean =>
   window.matchMedia('(display-mode: standalone)').matches
   || (navigator as unknown as { standalone?: boolean }).standalone === true;
 
+/* File Handling API (abrir arquivos no PWA) — ainda fora da lib padrão do TS. */
+interface LaunchParams { files?: Array<{ getFile(): Promise<File> }>; }
+interface LaunchQueue { setConsumer(consumer: (params: LaunchParams) => void): void; }
+
 /** Controlador principal da aplicação. */
 export class App {
   private readonly designer = new QRDesigner();
@@ -721,7 +725,15 @@ export class App {
     const input = ev.target as HTMLInputElement;
     const file = input.files && input.files[0];
     input.value = '';
-    if (!file) return;
+    if (file) await this.decodeFile(file);
+  }
+
+  /**
+   * Decodifica uma imagem (arquivo) e mostra o resultado. Reutilizado pelo
+   * seletor de arquivo, pelos `file_handlers` (abrir imagem) e pelo
+   * `share_target` (compartilhar imagem para o app).
+   */
+  async decodeFile(file: File): Promise<void> {
     const errEl = $('readErr');
     errEl.textContent = '';
     try {
@@ -916,7 +928,48 @@ export class App {
     // O conteúdo e o nível de correção são fixados ao clicar em "Gerar"; a partir
     // daí (etapa 2) só a personalização muda, redesenhando o QR ao vivo.
 
+    this.handleLaunch();
     this.initShared();
+  }
+
+  /**
+   * Trata os modos de abertura do PWA:
+   * - atalhos (`?view=read|gen|about`) abrem a aba correspondente;
+   * - `file_handlers` (abrir uma imagem no app) via `launchQueue`;
+   * - `share_target` (imagem compartilhada de outro app) via `?share-target=1`,
+   *   com o arquivo guardado pelo service worker.
+   */
+  private handleLaunch(): void {
+    const params = new URLSearchParams(location.search);
+
+    const view = params.get('view');
+    if (view && ['gen', 'read', 'about'].includes(view)) this.showView(view);
+
+    if (params.has('share-target')) {
+      history.replaceState(null, '', location.pathname);
+      this.showView('read');
+      void this.consumeSharedImage();
+    }
+
+    const lq = (window as unknown as { launchQueue?: LaunchQueue }).launchQueue;
+    lq?.setConsumer((p) => {
+      const handle = p.files && p.files[0];
+      if (!handle) return;
+      this.showView('read');
+      void (async () => { await this.decodeFile(await handle.getFile()); })();
+    });
+  }
+
+  /** Lê a imagem que o service worker guardou ao receber um compartilhamento. */
+  private async consumeSharedImage(): Promise<void> {
+    try {
+      const cache = await caches.open('qr-utils-share');
+      const resp = await cache.match('shared-image');
+      if (!resp) return;
+      await cache.delete('shared-image');
+      const blob = await resp.blob();
+      await this.decodeFile(new File([blob], 'compartilhado', { type: blob.type }));
+    } catch { /* sem imagem/sem cache → ignora */ }
   }
 
   private registerEvents(): void {
