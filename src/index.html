@@ -254,6 +254,25 @@
               </div>
             </div>
           </div>
+          <label class="check" style="margin-top:10px">
+            <input type="checkbox" id="bgTransp" onchange="setBgTransparent(this.checked)"> Fundo transparente
+          </label>
+          <div class="row" style="margin-top:12px">
+            <div>
+              <label class="fld" for="c_ef">Moldura do olho</label>
+              <div class="color-field">
+                <input type="color" id="c_ef" value="#0f172a" oninput="setEyeColor('frame', this.value)">
+                <input type="text" class="hex" id="c_ef_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setEyeHex('frame', this.value)">
+              </div>
+            </div>
+            <div>
+              <label class="fld" for="c_ec">Centro do olho</label>
+              <div class="color-field">
+                <input type="color" id="c_ec" value="#0f172a" oninput="setEyeColor('center', this.value)">
+                <input type="text" class="hex" id="c_ec_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setEyeHex('center', this.value)">
+              </div>
+            </div>
+          </div>
           <div class="swatches" id="colorPresets">
             <button class="swatch" style="--a:#0f172a;--b:#ffffff" title="Clássico" onclick="applyPreset('#0f172a','#ffffff')"></button>
             <button class="swatch" style="--a:#1d4ed8;--b:#ffffff" title="Azul" onclick="applyPreset('#1d4ed8','#ffffff')"></button>
@@ -266,12 +285,17 @@
 
         <!-- Formas -->
         <div class="cpanel" data-panel="shape" hidden>
-          <div class="opts" id="shapeOpts">
-            <button class="opt active" data-shape="solid" onclick="setShape('solid')"><span class="opt-ico sl"></span>Contínuo</button>
-            <button class="opt" data-shape="rounded" onclick="setShape('rounded')"><span class="opt-ico rd"></span>Arredondado</button>
-            <button class="opt" data-shape="dots" onclick="setShape('dots')"><span class="opt-ico dt"></span>Pontos</button>
-            <button class="opt" data-shape="classy" onclick="setShape('classy')"><span class="opt-ico cl"></span>Elegante</button>
-          </div>
+          <label class="fld">Corpo</label>
+          <!-- Botões gerados de ./qr/shapes (registro BODY) em buildShapeControls(). -->
+          <div class="opts" id="shapeOpts"></div>
+
+          <label class="fld" style="margin-top:12px">Moldura do olho</label>
+          <div class="opts" id="eyeFrameOpts"></div>
+
+          <label class="fld" style="margin-top:12px">Centro do olho</label>
+          <div class="opts" id="eyeCenterOpts"></div>
+          <p class="hint" style="margin-top:6px">“Automático” combina com o corpo. Centros em forma de ícone (coração, estrela, losango…) desenham os módulos isolados, mesmo com um corpo conectado.</p>
+
           <label class="fld" style="margin-top:12px">Contorno</label>
           <div class="opts" id="qrShapeOpts">
             <button class="opt active" data-qrshape="square" onclick="setQrShape('square')">

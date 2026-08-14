@@ -7,8 +7,10 @@ import { QRDesigner } from './qr/designer';
 import { QRReader } from './qr/reader';
 import type { ReadMode } from './qr/reader';
 import { createFrame } from './qr/frames';
-import type { Ecl, ModuleShape, FrameStyle } from './qr/types';
+import type { Ecl, ModuleShape, EyeFrameShape, EyeCenterShape, FrameStyle } from './qr/types';
 import type { ShapeType } from 'qr-code-styling';
+import { BODY, EYE_FRAME, eyeCenterOptions } from './qr/shapes';
+import type { BodyShapeDef, EyeFrameDef, CenterOption } from './qr/shapes';
 import { escWifi, escVcard, icalDate, fmtIcalDate, maskPhoneBR, maskPhoneWa } from './format';
 import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
@@ -37,6 +39,20 @@ function attachMask(id: string, fn: (v: string) => string): void {
   const el = document.getElementById(id) as HTMLInputElement | null;
   if (el) el.addEventListener('input', () => { el.value = fn(el.value); });
 }
+
+/* ---------- Previews dos botões de forma (gerados dos registries) ---------- */
+const ICON_COL = '#334155';
+const svgIco = (inner: string): string =>
+  `<svg class="opt-ico-svg" viewBox="0 0 24 24" width="26" height="26">${inner}</svg>`;
+
+/** Ícone de uma forma de corpo: usa o próprio `draw` (lib e custom têm glifo). */
+const bodyPreview = (def: BodyShapeDef): string => svgIco(def.draw(12, 12, 20, ICON_COL));
+/** Ícone da moldura do olho: desenha o anel num finder 7×7 encaixado em 24×24. */
+const eyeFramePreview = (def: EyeFrameDef): string => svgIco(def.draw(2, 2, 20 / 7, ICON_COL));
+/** Ícone do centro do olho: moldura leve de contexto + o glifo do centro. */
+const eyeCenterPreview = (def: CenterOption): string =>
+  svgIco(`<rect x="2.5" y="2.5" width="19" height="19" rx="3" fill="none" stroke="#cbd5e1" stroke-width="2"/>`
+    + def.draw(12, 12, 15, ICON_COL));
 
 /* =====================================================================
    Visualização por tipo (resultado lido / link compartilhado)
@@ -484,6 +500,12 @@ export class App {
     const base = which === 'fg' ? 'c_fg' : 'c_bg';
     $i(base).value = value;
     $i(base + '_hex').value = value;
+    // Enquanto as cores de olho herdam `fg`, mantém os seletores exibindo a mesma cor.
+    if (which === 'fg') {
+      const { eyeFrame, eyeCenter } = this.designer.colors;
+      if (eyeFrame === undefined) { $i('c_ef').value = value; $i('c_ef_hex').value = value; }
+      if (eyeCenter === undefined) { $i('c_ec').value = value; $i('c_ec_hex').value = value; }
+    }
     this.liveUpdate();
   }
 
@@ -504,6 +526,81 @@ export class App {
     document.querySelectorAll('#shapeOpts .opt').forEach((o) =>
       o.classList.toggle('active', (o as HTMLElement).dataset.shape === v));
     this.liveUpdate();
+  }
+
+  setEyeFrameShape(v: EyeFrameShape): void {
+    this.designer.eyeFrameShape = v;
+    document.querySelectorAll('#eyeFrameOpts .opt').forEach((o) =>
+      o.classList.toggle('active', (o as HTMLElement).dataset.eyeframe === v));
+    this.liveUpdate();
+  }
+
+  setEyeCenterShape(v: EyeCenterShape): void {
+    this.designer.eyeCenterShape = v;
+    document.querySelectorAll('#eyeCenterOpts .opt').forEach((o) =>
+      o.classList.toggle('active', (o as HTMLElement).dataset.eyecenter === v));
+    this.liveUpdate();
+  }
+
+  /** Cor da moldura/centro do olho (sobrescreve a cor dos módulos). */
+  setEyeColor(which: 'frame' | 'center', value: string): void {
+    this.designer.colors = which === 'frame' ? { eyeFrame: value } : { eyeCenter: value };
+    const base = which === 'frame' ? 'c_ef' : 'c_ec';
+    $i(base).value = value;
+    $i(base + '_hex').value = value;
+    this.liveUpdate();
+  }
+
+  setEyeHex(which: 'frame' | 'center', raw: string): void {
+    let v = raw.trim().replace(/^#/, '');
+    if (/^[0-9a-fA-F]{3}$/.test(v)) v = v.split('').map((c) => c + c).join('');
+    else if (!/^[0-9a-fA-F]{6}$/.test(v)) return;
+    v = '#' + v.toLowerCase();
+    this.setEyeColor(which, v);
+  }
+
+  /** Liga/desliga o fundo transparente; desabilita o seletor de cor de fundo. */
+  setBgTransparent(on: boolean): void {
+    this.designer.bgTransparent = on;
+    $i('c_bg').disabled = on;
+    $i('c_bg_hex').disabled = on;
+    $('c_bg').closest('.color-field')?.classList.toggle('disabled', on);
+    const chk = document.getElementById('bgTransp') as HTMLInputElement | null;
+    if (chk) chk.checked = on;
+    this.liveUpdate();
+  }
+
+  /**
+   * Monta os botões de forma (corpo/moldura/centro) a partir dos registries.
+   * Registrar uma forma nova em ./qr/shapes já a faz aparecer aqui — sem tocar no
+   * HTML nem repetir listas.
+   */
+  private buildShapeControls(): void {
+    const autoFirst = <T extends { name: string }>(a: T, b: T): number =>
+      (a.name === 'auto' ? 0 : 1) - (b.name === 'auto' ? 0 : 1);
+    const fill = <T extends { name: string; label: string }>(
+      id: string, attr: string, entries: T[], active: string,
+      onClick: (name: string) => void, preview: (d: T) => string,
+    ): void => {
+      const host = $(id);
+      host.innerHTML = '';
+      for (const def of entries) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'opt' + (def.name === active ? ' active' : '');
+        b.dataset[attr] = def.name;
+        b.innerHTML = preview(def) + `<span>${def.label}</span>`;
+        b.addEventListener('click', () => onClick(def.name));
+        host.appendChild(b);
+      }
+    };
+    fill('shapeOpts', 'shape', [...BODY.values()], this.designer.shape,
+      (v) => this.setShape(v as ModuleShape), bodyPreview);
+    fill('eyeFrameOpts', 'eyeframe', [...EYE_FRAME.values()].sort(autoFirst), this.designer.eyeFrameShape,
+      (v) => this.setEyeFrameShape(v as EyeFrameShape), eyeFramePreview);
+    // Centro do olho: mesmo catálogo do corpo (`auto` já vem primeiro).
+    fill('eyeCenterOpts', 'eyecenter', eyeCenterOptions(), this.designer.eyeCenterShape,
+      (v) => this.setEyeCenterShape(v as EyeCenterShape), eyeCenterPreview);
   }
 
   setQrShape(v: ShapeType): void {
@@ -630,10 +727,14 @@ export class App {
    * inflaria demais a URL.
    */
   private buildShareURL(text: string): string {
-    const { fg, bg } = this.designer.colors;
+    const { fg, bg, eyeFrame, eyeCenter } = this.designer.colors;
     const q = buildShareQuery({
       text, ecl: this.designer.ecl, fg, bg,
-      shape: this.designer.shape, qrShape: this.designer.qrShape,
+      eyeFrameColor: eyeFrame, eyeCenterColor: eyeCenter,
+      bgTransparent: this.designer.bgTransparent,
+      shape: this.designer.shape,
+      eyeFrame: this.designer.eyeFrameShape, eyeCenter: this.designer.eyeCenterShape,
+      qrShape: this.designer.qrShape,
       frame: this.frameStyle, caption: this.caption, size: this.exportPx,
     });
     return location.origin + location.pathname + '#' + q;
@@ -663,8 +764,14 @@ export class App {
     this.designer.text = text;
     // Aplica as opções do link (ou o padrão para as ausentes).
     this.designer.ecl = sp.ecl ?? SHARE_DEFAULTS.ecl;
-    this.designer.colors = { fg: sp.fg ?? SHARE_DEFAULTS.fg, bg: sp.bg ?? SHARE_DEFAULTS.bg };
+    this.designer.colors = {
+      fg: sp.fg ?? SHARE_DEFAULTS.fg, bg: sp.bg ?? SHARE_DEFAULTS.bg,
+      eyeFrame: sp.eyeFrameColor, eyeCenter: sp.eyeCenterColor,
+    };
+    this.designer.bgTransparent = sp.bgTransparent ?? SHARE_DEFAULTS.bgTransparent;
     this.designer.shape = sp.shape ?? SHARE_DEFAULTS.shape;
+    this.designer.eyeFrameShape = sp.eyeFrame ?? SHARE_DEFAULTS.eyeFrame;
+    this.designer.eyeCenterShape = sp.eyeCenter ?? SHARE_DEFAULTS.eyeCenter;
     this.designer.qrShape = sp.qrShape ?? SHARE_DEFAULTS.qrShape;
     this.frameStyle = sp.frame ?? SHARE_DEFAULTS.frame;
     this.caption = sp.caption ?? SHARE_DEFAULTS.caption;
@@ -716,7 +823,14 @@ export class App {
   private resetCustomization(): void {
     this.setColor('fg', SHARE_DEFAULTS.fg);
     this.setColor('bg', SHARE_DEFAULTS.bg);
+    // Zera as sobrescritas de cor do olho (voltam a herdar `fg`).
+    this.designer.colors = { eyeFrame: undefined, eyeCenter: undefined };
+    $i('c_ef').value = SHARE_DEFAULTS.fg; $i('c_ef_hex').value = SHARE_DEFAULTS.fg;
+    $i('c_ec').value = SHARE_DEFAULTS.fg; $i('c_ec_hex').value = SHARE_DEFAULTS.fg;
+    this.setBgTransparent(SHARE_DEFAULTS.bgTransparent);
     this.setShape(SHARE_DEFAULTS.shape);
+    this.setEyeFrameShape(SHARE_DEFAULTS.eyeFrame);
+    this.setEyeCenterShape(SHARE_DEFAULTS.eyeCenter);
     this.setQrShape(SHARE_DEFAULTS.qrShape);
     this.setFrame(SHARE_DEFAULTS.frame);
     this.setCaption(SHARE_DEFAULTS.caption);
@@ -976,6 +1090,7 @@ export class App {
   init(): void {
     this.exposeHandlers();
     this.registerEvents();
+    this.buildShapeControls();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -1102,6 +1217,9 @@ export class App {
     w.setCustomTab = (n: string) => this.setCustomTab(n);
     w.setColor = (which: 'fg' | 'bg', v: string) => this.setColor(which, v);
     w.setHex = (which: 'fg' | 'bg', v: string) => this.setHex(which, v);
+    w.setEyeColor = (which: 'frame' | 'center', v: string) => this.setEyeColor(which, v);
+    w.setEyeHex = (which: 'frame' | 'center', v: string) => this.setEyeHex(which, v);
+    w.setBgTransparent = (on: boolean) => this.setBgTransparent(on);
     w.applyPreset = (fg: string, bg: string) => this.applyPreset(fg, bg);
     w.setShape = (v: ModuleShape) => this.setShape(v);
     w.setQrShape = (v: ShapeType) => this.setQrShape(v);
