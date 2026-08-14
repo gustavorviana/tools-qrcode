@@ -16,10 +16,6 @@ concurrency:
   group: pipeline-main
   cancel-in-progress: false
 
-env:
-  # Nome do projeto no Cloudflare Pages (ajuste se o seu for diferente).
-  CF_PROJECT: tools-qrcode
-
 jobs:
   bump:
     name: Calcular versão
@@ -123,12 +119,15 @@ jobs:
       - name: Build (injeta NEW_VERSION no HTML e no service worker)
         run: npm run build
 
-      - name: Publicar no Cloudflare Pages
+      - name: Publicar no Cloudflare (Worker com static assets)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=${{ env.CF_PROJECT }} --branch=main
+          # Nome do Worker vem da variável CF_PROJECT (repo → Variables), então dá
+          # para trocar o alvo sem editar/republicar. Sem wrangler.jsonc: name +
+          # assets vão por flag.
+          command: deploy --name=${{ vars.CF_PROJECT }} --assets=dist --compatibility-date=2024-11-06
 
       - name: Configurar identidade do git
         run: |
