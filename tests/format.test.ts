@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { escWifi, escVcard, icalDate, icalGet, fmtIcalDate, maskPhoneBR, maskPhoneWa } from '../src/format';
+import { escWifi, escVcard, icalDate, icalGet, fmtIcalDate, maskPhoneBR, maskPhoneWa,
+  socialUrl, paypalUrl, mecard, zoomUrl } from '../src/format';
 
 describe('escWifi', () => {
   it('escapa os caracteres especiais do payload Wi-Fi', () => {
@@ -80,5 +81,59 @@ describe('maskPhoneWa', () => {
   });
   it('devolve vazio para entrada sem dígitos', () => {
     expect(maskPhoneWa('abc')).toBe('');
+  });
+});
+
+describe('socialUrl', () => {
+  it('anexa o usuário à base, removendo @ e espaços', () => {
+    expect(socialUrl('@fulano', 'https://instagram.com/')).toBe('https://instagram.com/fulano');
+    expect(socialUrl('  fulano ', 'https://t.me/')).toBe('https://t.me/fulano');
+  });
+  it('devolve um link completo como está', () => {
+    expect(socialUrl('https://youtube.com/@canal', 'https://youtube.com/@')).toBe('https://youtube.com/@canal');
+  });
+  it('vazio devolve string vazia', () => {
+    expect(socialUrl('   ', 'https://x.com/')).toBe('');
+  });
+});
+
+describe('paypalUrl', () => {
+  it('monta o link sem valor', () => {
+    expect(paypalUrl('@loja', '')).toBe('https://paypal.me/loja');
+  });
+  it('inclui o valor válido (aceita vírgula)', () => {
+    expect(paypalUrl('loja', '49,90')).toBe('https://paypal.me/loja/49.90');
+  });
+  it('ignora valor não numérico e usuário vazio', () => {
+    expect(paypalUrl('loja', 'abc')).toBe('https://paypal.me/loja');
+    expect(paypalUrl('', '10')).toBe('');
+  });
+});
+
+describe('mecard', () => {
+  it('separa sobrenome/nome e inclui tel/email quando houver', () => {
+    expect(mecard('Maria Silva', '(11) 99999-8888', 'm@x.com'))
+      .toBe('MECARD:N:Silva,Maria;TEL:11999998888;EMAIL:m@x.com;;');
+  });
+  it('nome único vai só no primeiro nome; campos vazios são omitidos', () => {
+    expect(mecard('Fulano', '', '')).toBe('MECARD:N:,Fulano;;');
+  });
+  it('escapa caracteres especiais do MeCard', () => {
+    expect(mecard('A;B', '', '')).toBe('MECARD:N:,A\\;B;;');
+  });
+  it('sem nome devolve vazio', () => {
+    expect(mecard('  ', '11999', 'a@b.com')).toBe('');
+  });
+});
+
+describe('zoomUrl', () => {
+  it('usa só os dígitos do ID', () => {
+    expect(zoomUrl('123 4567 8901', '')).toBe('https://zoom.us/j/12345678901');
+  });
+  it('inclui a senha codificada', () => {
+    expect(zoomUrl('123', 'a b&c')).toBe('https://zoom.us/j/123?pwd=a%20b%26c');
+  });
+  it('sem ID devolve vazio', () => {
+    expect(zoomUrl('abc', 'x')).toBe('');
   });
 });

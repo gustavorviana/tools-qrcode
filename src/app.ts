@@ -13,7 +13,7 @@ import { BODY, EYE_FRAME, eyeCenterOptions, isCustomBody, centerNeedsCustom } fr
 import type { BodyShapeDef, EyeFrameDef, CenterOption } from './qr/shapes';
 import { LOGOS, logoSvg, logoDataUrl } from './qr/logos';
 import type { LogoStyle } from './qr/logos';
-import { escWifi, escVcard, icalDate, fmtIcalDate, maskPhoneBR, maskPhoneWa } from './format';
+import { escWifi, escVcard, icalDate, fmtIcalDate, maskPhoneBR, maskPhoneWa, socialUrl, paypalUrl, mecard, zoomUrl } from './format';
 import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
 import { SHARE_DEFAULTS, PNG_SIZES, buildShareQuery, parseShareQuery } from './qr/share';
@@ -316,6 +316,7 @@ export class App {
 
   /* ---------- Montagem do conteúdo ---------- */
   private buildContent(): string {
+    const social = (id: string, base: string): string => socialUrl(val(id), base);
     switch (this.currentType) {
       case 'text':
         return val('f_text');
@@ -403,6 +404,22 @@ export class App {
         lines.push('END:VEVENT', 'END:VCALENDAR');
         return lines.join('\n');
       }
+      case 'instagram': return social('f_ig', 'https://instagram.com/');
+      case 'facebook': return social('f_fb', 'https://facebook.com/');
+      case 'telegram': return social('f_tg', 'https://t.me/');
+      case 'youtube': return social('f_yt', 'https://youtube.com/@');
+      case 'tiktok': return social('f_tt', 'https://tiktok.com/@');
+      case 'x': return social('f_x', 'https://x.com/');
+      case 'linkedin': return social('f_li', 'https://linkedin.com/in/');
+      case 'paypal': return paypalUrl(val('f_pp'), val('f_ppamt'));
+      case 'mecard': return mecard(val('f_mcname'), val('f_mctel'), val('f_mcemail'));
+      case 'app': {
+        let u = val('f_app').trim();
+        if (!u) return '';
+        if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(u)) u = 'https://' + u;
+        return u;
+      }
+      case 'zoom': return zoomUrl(val('f_zoomid'), val('f_zoompwd'));
     }
     return '';
   }
@@ -1199,6 +1216,7 @@ export class App {
     attachMask('f_tel', maskPhoneBR);
     attachMask('f_smsnum', maskPhoneBR);
     attachMask('f_vctel', maskPhoneBR);
+    attachMask('f_mctel', maskPhoneBR);
     attachMask('f_wanum', maskPhoneWa);
 
     // O conteúdo e o nível de correção são fixados ao clicar em "Gerar"; a partir
