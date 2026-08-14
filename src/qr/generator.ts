@@ -125,7 +125,9 @@ export class QrGenerator {
       cornersSquareOptions: { type: cornerSquare, color: eyeFrameColor },
       cornersDotOptions: { type: cornerDot, color: eyeCenterColor },
       backgroundOptions: { color: this._bgTransparent ? 'transparent' : bg },
-      image: this._logo ?? undefined,
+      // No backend custom o logo é desenhado pelo nosso renderer; não passamos à
+      // lib (evita carregar a imagem só para descartar o SVG dela).
+      image: custom ? undefined : (this._logo ?? undefined),
       imageOptions: { imageSize: 0.4, margin: 2, hideBackgroundDots: true },
     };
 

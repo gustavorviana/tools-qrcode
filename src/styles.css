@@ -298,6 +298,13 @@
   .opt-ico.dt{border-radius:50%}
   .opt-ico.cl{border-radius:9px 2px 9px 2px}
   .opt-ico-svg{width:26px;height:26px;display:block}
+  /* galeria de logos prontos */
+  .logos{display:flex;gap:8px;flex-wrap:wrap}
+  .logo-opt{width:48px;height:48px;padding:5px;border:1px solid var(--line);background:var(--panel2);
+    border-radius:12px;cursor:pointer;transition:.12s;flex:none}
+  .logo-opt:hover{border-color:var(--accent)}
+  .logo-opt.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .logo-opt svg{width:100%;height:100%;display:block;border-radius:8px}
   .frame-ex{width:26px;height:30px;display:block;color:var(--muted)}
   .opt.active .frame-ex{color:var(--text)}
   .check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}

@@ -9,8 +9,10 @@ import type { ReadMode } from './qr/reader';
 import { createFrame } from './qr/frames';
 import type { Ecl, ModuleShape, EyeFrameShape, EyeCenterShape, FrameStyle } from './qr/types';
 import type { ShapeType } from 'qr-code-styling';
-import { BODY, EYE_FRAME, eyeCenterOptions } from './qr/shapes';
+import { BODY, EYE_FRAME, eyeCenterOptions, isCustomBody, centerNeedsCustom } from './qr/shapes';
 import type { BodyShapeDef, EyeFrameDef, CenterOption } from './qr/shapes';
+import { LOGOS, logoSvg, logoDataUrl } from './qr/logos';
+import type { LogoStyle } from './qr/logos';
 import { escWifi, escVcard, icalDate, fmtIcalDate, maskPhoneBR, maskPhoneWa } from './format';
 import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
@@ -268,6 +270,10 @@ export class App {
   private frameStyle: FrameStyle = 'none';
   private caption = 'ESCANEIE';
 
+  /** Logo pronto selecionado (null = nenhum ou imagem própria) e modo mono (padrão). */
+  private logoName: string | null = null;
+  private logoMono = true;
+
   private stream: MediaStream | null = null;
   private scanning = false;
   private map: MapState | null = null;
@@ -435,15 +441,31 @@ export class App {
       `Versão ${version} · correção ${ECL_LETTER[ecl]} · ${moduleCount}×${moduleCount} módulos`;
   }
 
+  /**
+   * Resolve o nível de correção efetivo. `AUTO` (padrão) eleva sozinho conforme
+   * o que reduz a leitura: formas de ícone → Alta; logo → Máxima. No modo manual,
+   * mantém uma rede de segurança se houver logo.
+   */
+  private effectiveEcl(): Ecl {
+    const sel = val('genEcl');
+    if (sel === 'AUTO') {
+      let ecl: Ecl = 'MEDIUM';
+      if (isCustomBody(this.designer.shape) || centerNeedsCustom(this.designer.eyeCenterShape)) ecl = 'QUARTILE';
+      if (this.designer.hasLogo) ecl = 'HIGH';
+      return ecl;
+    }
+    let ecl = sel as Ecl;
+    if (this.designer.hasLogo && (ecl === 'LOW' || ecl === 'MEDIUM')) ecl = 'QUARTILE';
+    return ecl;
+  }
+
   private async regenerate(): Promise<void> {
     $('genErr').textContent = '';
     const text = this.buildContent();
     if (!text.trim()) { this.lastSVG = ''; $('step3').hidden = true; return; }
-    let ecl = val('genEcl') as Ecl;
-    if (this.designer.hasLogo && (ecl === 'LOW' || ecl === 'MEDIUM')) ecl = 'QUARTILE';
     this.lastText = text;
     this.designer.text = text;
-    this.designer.ecl = ecl;
+    this.designer.ecl = this.effectiveEcl();
     await this.renderPreview();
   }
 
@@ -506,6 +528,7 @@ export class App {
       if (eyeFrame === undefined) { $i('c_ef').value = value; $i('c_ef_hex').value = value; }
       if (eyeCenter === undefined) { $i('c_ec').value = value; $i('c_ec_hex').value = value; }
     }
+    if (this.logoMono) this.applyLogo(); // logo mono acompanha as cores do QR
     this.liveUpdate();
   }
 
@@ -567,6 +590,7 @@ export class App {
     $('c_bg').closest('.color-field')?.classList.toggle('disabled', on);
     const chk = document.getElementById('bgTransp') as HTMLInputElement | null;
     if (chk) chk.checked = on;
+    if (this.logoMono) this.applyLogo(); // fundo mono do logo acompanha o QR
     this.liveUpdate();
   }
 
@@ -633,15 +657,75 @@ export class App {
     const reader = new FileReader();
     reader.onload = () => {
       this.designer.logo = reader.result as string;
+      this.logoName = null; // imagem própria desmarca os logos prontos
       $('logoRemove').hidden = false;
+      this.clearLogoActive();
       this.liveUpdate();
     };
     reader.readAsDataURL(file);
   }
 
+  /** Estilo de render do logo pronto conforme o modo mono + cores do QR. */
+  private logoStyle(): LogoStyle {
+    if (!this.logoMono) return {};
+    const { fg, bg } = this.designer.colors;
+    return { mono: true, fg, bg: this.designer.bgTransparent ? '#ffffff' : bg };
+  }
+
+  /** Aplica o logo pronto atual (se houver) ao designer, na cor/modo correntes. */
+  private applyLogo(): void {
+    const def = this.logoName ? LOGOS.find((l) => l.name === this.logoName) : null;
+    if (!def) return;
+    this.designer.logo = logoDataUrl(logoSvg(def, this.logoStyle()));
+  }
+
+  /** Usa um logo pronto (galeria) como imagem central do QR. */
+  setLogoPreset(name: string): void {
+    if (!LOGOS.some((l) => l.name === name)) return;
+    this.logoName = name;
+    this.applyLogo();
+    $('logoRemove').hidden = false;
+    document.querySelectorAll('#logoPresets .logo-opt').forEach((o) =>
+      o.classList.toggle('active', (o as HTMLElement).dataset.logo === name));
+    this.liveUpdate();
+  }
+
+  /** Alterna logos entre colorido e monocromático (cores do QR). */
+  setLogoMono(on: boolean): void {
+    this.logoMono = on;
+    const chk = document.getElementById('logoMono') as HTMLInputElement | null;
+    if (chk) chk.checked = on;
+    this.buildLogoControls(); // miniaturas refletem o modo
+    this.applyLogo();
+    this.liveUpdate();
+  }
+
+  private clearLogoActive(): void {
+    document.querySelectorAll('#logoPresets .logo-opt').forEach((o) => o.classList.remove('active'));
+  }
+
+  /** Monta a galeria de logos prontos a partir do registro LOGOS. */
+  private buildLogoControls(): void {
+    const host = $('logoPresets');
+    host.innerHTML = '';
+    const style = this.logoStyle();
+    for (const def of LOGOS) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'logo-opt' + (def.name === this.logoName ? ' active' : '');
+      b.dataset.logo = def.name;
+      b.title = def.label;
+      b.innerHTML = logoSvg(def, style);
+      b.addEventListener('click', () => this.setLogoPreset(def.name));
+      host.appendChild(b);
+    }
+  }
+
   removeLogo(): void {
     this.designer.logo = null;
+    this.logoName = null;
     $('logoRemove').hidden = true;
+    this.clearLogoActive();
     this.liveUpdate();
   }
 
@@ -837,6 +921,8 @@ export class App {
     $i('c_caption').value = SHARE_DEFAULTS.caption;
     this.setPngSize(SHARE_DEFAULTS.size);
     this.removeLogo();
+    this.setLogoMono(true); // monocromático é o padrão
+    $i('genEcl').value = 'AUTO';
   }
 
   /* ---------- Leitura ---------- */
@@ -1091,6 +1177,7 @@ export class App {
     this.exposeHandlers();
     this.registerEvents();
     this.buildShapeControls();
+    this.buildLogoControls();
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -1226,7 +1313,10 @@ export class App {
     w.setFrame = (v: FrameStyle) => this.setFrame(v);
     w.setCaption = (v: string) => this.setCaption(v);
     w.onLogo = (ev: Event) => this.onLogo(ev);
+    w.setLogoPreset = (n: string) => this.setLogoPreset(n);
+    w.setLogoMono = (on: boolean) => this.setLogoMono(on);
     w.removeLogo = () => this.removeLogo();
+    w.onEclChange = () => this.liveUpdate();
     w.setPngSize = (px: number) => this.setPngSize(px);
   }
 }
