@@ -1,0 +1,41 @@
+name: CI
+
+# Validação de todo PR que mira a main: roda antes do merge e serve de gate
+# (marque como required status check na proteção da branch main).
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Novo push no PR cancela o run anterior — evita fila de builds redundantes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Compilação e testes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Configurar Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Typecheck (tsc)
+        run: npm run typecheck
+
+      - name: Testes (vitest)
+        run: npm test
+
+      - name: Build (compilação do dist)
+        run: npm run build

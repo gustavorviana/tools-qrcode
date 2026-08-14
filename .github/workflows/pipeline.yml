@@ -30,7 +30,7 @@ jobs:
       LEVEL: ${{ steps.bump.outputs.LEVEL }}
     steps:
       - name: Checkout da main (histórico completo + tags)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main       # pós-merge: garante a main, não o ref do PR
           fetch-depth: 0  # precisa do histórico e das tags para calcular o bump
@@ -102,13 +102,13 @@ jobs:
       PREV_VERSION: ${{ needs.bump.outputs.PREV_VERSION }}
     steps:
       - name: Checkout da main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
           fetch-depth: 0  # precisa das tags para criar a tag de release ao final
 
       - name: Configurar Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
           cache: npm
@@ -124,6 +124,9 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Sem isso a action instala o wrangler 3.90 (desatualizado) e arrasta
+          # deprecations/vulns transitivas. Fixa uma 4.x atual.
+          wranglerVersion: "4.42.0"
           # Nome do Worker vem da variável CF_PROJECT (repo → Variables), então dá
           # para trocar o alvo sem editar/republicar. Sem wrangler.jsonc: name +
           # assets vão por flag.
