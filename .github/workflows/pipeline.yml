@@ -1,0 +1,147 @@
+name: Pipeline
+
+# Roda quando um PR é mesclado em main (não em push avulso) e também sob demanda.
+on:
+  pull_request:
+    branches: [main]
+    types: [closed]
+  workflow_dispatch:
+
+# Necessário para criar e empurrar a tag de versão usando o GITHUB_TOKEN.
+permissions:
+  contents: write
+
+# Evita dois runs bumpando/publicando ao mesmo tempo.
+concurrency:
+  group: pipeline-main
+  cancel-in-progress: false
+
+env:
+  # Nome do projeto no Cloudflare Pages (ajuste se o seu for diferente).
+  CF_PROJECT: tools-qrcode
+
+jobs:
+  bump:
+    name: Calcular versão
+    runs-on: ubuntu-latest
+    # Só segue se o PR foi realmente MESCLADO (ignora PR fechado sem merge);
+    # o dispatch manual também passa.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    # Expõe a versão para o job de deploy.
+    outputs:
+      NEW_VERSION: ${{ steps.bump.outputs.NEW_VERSION }}
+      PREV_VERSION: ${{ steps.bump.outputs.PREV_VERSION }}
+      LEVEL: ${{ steps.bump.outputs.LEVEL }}
+    steps:
+      - name: Checkout da main (histórico completo + tags)
+        uses: actions/checkout@v4
+        with:
+          ref: main       # pós-merge: garante a main, não o ref do PR
+          fetch-depth: 0  # precisa do histórico e das tags para calcular o bump
+
+      - name: Calcular o bump (Conventional Commits)
+        id: bump
+        run: |
+          set -euo pipefail
+
+          # Versão anterior = última tag vX.Y.Z. Se não houver nenhuma ainda,
+          # semeia a partir do package.json (sem incrementar).
+          PREV_TAG=$(git tag --list 'v*' --sort=-v:refname | head -n1)
+          if [ -z "$PREV_TAG" ]; then
+            PREV_VERSION=$(node -p "require('./package.json').version")
+            LEVEL=none
+          else
+            PREV_VERSION=${PREV_TAG#v}
+            # Analisa as mensagens dos commits desde a última tag.
+            LOG=$(git log "${PREV_TAG}..HEAD" --format='%s%n%b')
+            if   printf '%s\n' "$LOG" | grep -qE '^BREAKING[ -]CHANGE:' \
+              || printf '%s\n' "$LOG" | grep -qE '^[a-z]+(\([^)]+\))?!:'; then
+              LEVEL=major
+            elif printf '%s\n' "$LOG" | grep -qE '^feat(\([^)]+\))?:'; then
+              LEVEL=minor
+            elif printf '%s\n' "$LOG" | grep -qE '^fix(\([^)]+\))?:'; then
+              LEVEL=patch
+            else
+              # Sem feat/fix/breaking (ex.: docs/chore): ainda assim bumpa patch,
+              # para que todo merge em main gere uma versão nova.
+              LEVEL=patch
+            fi
+          fi
+
+          # Calcula a nova versão (semver) a partir do nível.
+          if [ "$LEVEL" = "none" ]; then
+            NEW_VERSION="$PREV_VERSION"
+          else
+            NEW_VERSION=$(node -e 'const [M,m,p]=process.argv[1].split(".").map(Number);const l=process.argv[2];console.log(l==="major"?`${M+1}.0.0`:l==="minor"?`${M}.${m+1}.0`:`${M}.${m}.${p+1}`)' "$PREV_VERSION" "$LEVEL")
+          fi
+
+          # Mostra o antes/depois no log do step.
+          echo "Versão anterior : $PREV_VERSION"
+          echo "Nível do bump   : $LEVEL"
+          echo "Versão nova     : $NEW_VERSION"
+
+          # Expõe para o job de deploy (needs.bump.outputs.NEW_VERSION).
+          {
+            echo "PREV_VERSION=$PREV_VERSION"
+            echo "NEW_VERSION=$NEW_VERSION"
+            echo "LEVEL=$LEVEL"
+          } >> "$GITHUB_OUTPUT"
+
+          # Resumo bonito na aba do run (Summary).
+          {
+            echo "### 🔖 Bump de versão"
+            echo ""
+            echo "| Anterior | Nível | Nova |"
+            echo "|---|---|---|"
+            echo "| \`$PREV_VERSION\` | \`$LEVEL\` | \`$NEW_VERSION\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Build + deploy (Cloudflare Pages)
+    needs: bump
+    runs-on: ubuntu-latest
+    # A versão calculada chega como env var, exatamente como o build.mjs espera.
+    env:
+      NEW_VERSION: ${{ needs.bump.outputs.NEW_VERSION }}
+      PREV_VERSION: ${{ needs.bump.outputs.PREV_VERSION }}
+    steps:
+      - name: Checkout da main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0  # precisa das tags para criar a tag de release ao final
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build (injeta NEW_VERSION no HTML e no service worker)
+        run: npm run build
+
+      - name: Publicar no Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ env.CF_PROJECT }} --branch=main
+
+      - name: Configurar identidade do git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Criar e empurrar a tag (marca a versão publicada)
+        run: |
+          set -euo pipefail
+          if git rev-parse "v${NEW_VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${NEW_VERSION} já existe — nada a empurrar."
+            exit 0
+          fi
+          git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
+          git push origin "v${NEW_VERSION}"
+          echo "Tag v${NEW_VERSION} empurrada."
