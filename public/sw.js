@@ -2,7 +2,11 @@
    Único arquivo .js "separado" exigido pela plataforma (SW não pode ser inline).
    Toda a lógica do app está embutida no index.html. */
 const CACHE_PREFIX = 'qr-utils-';
-const CACHE = CACHE_PREFIX + 'v1.3';
+// A versão é o commit atual, injetado pelo build.mjs (SHA do Cloudflare Pages ou
+// do git). Cada commit em main gera um sw.js diferente → o navegador detecta a
+// mudança, reinstala o SW e troca o precache. (Em dev sem build, o placeholder
+// permanece literal.)
+const CACHE = CACHE_PREFIX + '__BUILD_HASH__';
 // Cache transitório para a imagem recebida via share_target (não é versionado
 // nem removido na limpeza de versões).
 const SHARE_CACHE = CACHE_PREFIX + 'share';
@@ -78,12 +82,19 @@ self.addEventListener('fetch', (e) => {
 
   if (req.method !== 'GET') return;
 
-  // Navegação (abrir/recarregar a página): tenta a rede e cai para o
-  // index.html cacheado quando offline. Cobre qualquer URL (/, /index.html, etc.).
+  // Navegação (abrir/recarregar a página): busca na rede e cai para o HTML
+  // cacheado quando offline. Cobre qualquer URL (/, /index.html, etc.).
+  // `cache: 'no-cache'` revalida via ETag em vez de baixar tudo: o servidor
+  // responde 304 (poucos bytes) quando o HTML não mudou e só manda o corpo
+  // inteiro quando muda — nunca serve HTML velho, sem redownload à toa.
+  // Guardamos a cópia fresca para servir offline depois.
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
       try {
-        return await fetch(req);
+        const fresh = await fetch(req, { cache: 'no-cache' });
+        const copy = fresh.clone();
+        caches.open(CACHE).then((c) => c.put('./', copy)).catch(() => {});
+        return fresh;
       } catch {
         return (await caches.match('./'))
           || (await caches.match('./index.html'))

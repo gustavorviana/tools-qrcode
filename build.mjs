@@ -7,7 +7,25 @@
  */
 import { build } from 'esbuild';
 import { readFile, writeFile, mkdir, copyFile, readdir } from 'node:fs/promises';
+import { execSync } from 'node:child_process';
 import path from 'node:path';
+
+// Versão do service worker, em ordem de prioridade:
+//  1) env NEW_VERSION — definida pela pipeline (job de bump) no deploy;
+//  2) última tag de versão do git (vX.Y.Z → X.Y.Z), quando buildando localmente;
+//  3) '1.0' como padrão (ex.: sem env e sem git/tags).
+function swVersion() {
+  const fromEnv = process.env.NEW_VERSION;
+  if (fromEnv && fromEnv.trim()) return fromEnv.trim();
+  try {
+    const tag = execSync('git tag --list "v*" --sort=-v:refname', { encoding: 'utf8' })
+      .split('\n')[0].trim();
+    if (tag) return tag.replace(/^v/, '');
+  } catch {
+    /* sem git disponível → cai para o padrão */
+  }
+  return '1.0';
+}
 
 const OUT = 'dist';
 await mkdir(OUT, { recursive: true });
@@ -36,15 +54,20 @@ const css = await build({
 const jsCode = js.outputFiles[0].text.replace(/<\/(script)/gi, '<\\/$1');
 const cssCode = css.outputFiles[0].text.trim();
 
+// Versão do build (env da pipeline → última tag → 1.0). Injetada no HTML e no SW.
+const version = swVersion();
+
 // 3) Injeta no template (função evita interpretação de $ no conteúdo).
 const tpl = await readFile('src/index.html', 'utf8');
 const html = tpl
   .replace('/*__CSS__*/', () => cssCode)
-  .replace('/*__JS__*/', () => jsCode.trim());
+  .replace('/*__JS__*/', () => jsCode.trim())
+  .replaceAll('__VERSION__', version);
 await writeFile(path.join(OUT, 'index.html'), html);
 
-// 4) Copia assets estáticos.
+// 4) Copia assets estáticos (o sw.js é tratado à parte no passo 6, com versão).
 for (const file of await readdir('public')) {
+  if (file === 'sw.js') continue;
   await copyFile(path.join('public', file), path.join(OUT, file));
 }
 
@@ -56,4 +79,9 @@ await copyFile(
   path.join(OUT, 'zxing_reader.wasm'),
 );
 
-console.log(`Build OK -> ${OUT}/index.html (${Math.round(Buffer.byteLength(html) / 1024)}KB)`);
+// 6) Service worker: injeta a mesma versão na versão do cache, disparando a
+// atualização do SW no cliente a cada release.
+const sw = (await readFile('public/sw.js', 'utf8')).replaceAll('__BUILD_HASH__', version);
+await writeFile(path.join(OUT, 'sw.js'), sw);
+
+console.log(`Build OK -> ${OUT}/index.html (${Math.round(Buffer.byteLength(html) / 1024)}KB) · sw ${version}`);
