@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Página única (SPA). As abas (?view=gen|read|about) apontam para esta mesma
+       URL canônica, então basta listar a raiz. -->
+  <url>
+    <loc>https://qr.tools.grviana.com.br/</loc>
+    <lastmod>2026-08-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
