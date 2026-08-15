@@ -1,7 +1,7 @@
   :root{
     --bg:#f8fafc; --panel:#ffffff; --panel2:#f1f5f9; --line:#e2e8f0;
     --text:#0f172a; --muted:#64748b; --accent:#2563eb; --accent-hover:#1d4ed8;
-    --dark:#0f172a; --danger:#dc2626; --radius:12px; --maxw:600px;
+    --dark:#0f172a; --danger:#dc2626; --radius:12px; --maxw:1000px;
     --shadow:0 1px 2px rgba(15,23,42,.04),0 4px 12px rgba(15,23,42,.06);
   }
   header,.tabs,main,footer{width:100%;max-width:var(--maxw);margin-inline:auto}
@@ -297,8 +297,19 @@
   .opt-ico.rd{border-radius:8px}
   .opt-ico.dt{border-radius:50%}
   .opt-ico.cl{border-radius:9px 2px 9px 2px}
+  .opt-ico-svg{width:26px;height:26px;display:block}
+  /* galeria de logos prontos */
+  .logos{display:flex;gap:8px;flex-wrap:wrap}
+  .logo-opt{width:48px;height:48px;padding:5px;border:1px solid var(--line);background:var(--panel2);
+    border-radius:12px;cursor:pointer;transition:.12s;flex:none}
+  .logo-opt:hover{border-color:var(--accent)}
+  .logo-opt.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .logo-opt svg{width:100%;height:100%;display:block;border-radius:8px}
   .frame-ex{width:26px;height:30px;display:block;color:var(--muted)}
   .opt.active .frame-ex{color:var(--text)}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+  .check input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+  .color-field.disabled{opacity:.45}
 
   /* preview do QR (SVG) */
   .qr-preview{display:flex;justify-content:center;padding:8px 0 4px;cursor:zoom-in}

@@ -30,6 +30,18 @@ describe('rasterizeSVG', () => {
     expect(out).toMatch(/<svg\b[^>]*\sheight="600"/);
   });
 
+  it('com QR aninhado: redimensiona só o <svg> externo, não o interno', () => {
+    // A moldura embute o QR como <svg aninhado; o rasterizeSVG força a resolução
+    // no PRIMEIRO <svg> (o externo). O QR aninhado deve manter seu width/height.
+    const nested = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1100" width="1000" height="1100">'
+      + '<svg x="0" y="0" viewBox="0 0 1000 1000" width="1000" height="1000"><rect x="0" y="0" width="1" height="1"/></svg>'
+      + '<rect x="0" y="1000" width="1000" height="100" fill="#ffffff"/></svg>';
+    const out = rasterizeSVG(nested, 500, 550);
+    expect(out).toMatch(/<svg\b[^>]*viewBox="0 0 1000 1100"[^>]*\swidth="500"/); // externo redimensionado
+    expect(out).toMatch(/<svg\b[^>]*viewBox="0 0 1000 1100"[^>]*\sheight="550"/);
+    expect(out).toContain('<svg x="0" y="0" viewBox="0 0 1000 1000" width="1000" height="1000">'); // aninhado intacto
+  });
+
   it('recorte com id desconhecido é mantido intacto (não quebra o desenho)', () => {
     const svg = '<svg shape-rendering="crispEdges" width="10" height="10">'
       + '<rect x="0" y="0" width="10" height="10" clip-path="url(\'#naoexiste\')" fill="#000000"/></svg>';

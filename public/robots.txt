@@ -1,0 +1,6 @@
+# QR Utils — https://qr.tools.grviana.com.br/
+# Permite a indexação de tudo (o app é uma página única, sem áreas privadas).
+User-agent: *
+Allow: /
+
+Sitemap: https://qr.tools.grviana.com.br/sitemap.xml

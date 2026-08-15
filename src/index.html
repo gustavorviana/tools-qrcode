@@ -27,6 +27,25 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <title>QR Utils — Gerador e leitor de QR Code</title>
+
+<!-- Dados estruturados: ajudam o Google a entender e exibir o app nos resultados. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "QR Utils",
+  "url": "https://qr.tools.grviana.com.br/",
+  "description": "Gere e leia QR Codes sem que nada saia do seu navegador. Processamento local, sem servidores, rastreadores ou cadastro — e funciona offline.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Web",
+  "browserRequirements": "Requires JavaScript",
+  "inLanguage": "pt-BR",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "author": { "@type": "Person", "name": "Gustavo Viana" }
+}
+</script>
+
 <style>/*__CSS__*/</style>
 </head>
 <body>
@@ -60,6 +79,17 @@
           <button class="type-tab" data-type="vcard" onclick="setType('vcard')"><span class="tt-ico">👤</span><span>Contato</span></button>
           <button class="type-tab" data-type="geo" onclick="setType('geo')"><span class="tt-ico">📍</span><span>Local</span></button>
           <button class="type-tab" data-type="event" onclick="setType('event')"><span class="tt-ico">📅</span><span>Evento</span></button>
+          <button class="type-tab" data-type="instagram" onclick="setType('instagram')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163C8.741 0 8.332.014 7.052.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></span><span>Instagram</span></button>
+          <button class="type-tab" data-type="facebook" onclick="setType('facebook')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></svg></span><span>Facebook</span></button>
+          <button class="type-tab" data-type="telegram" onclick="setType('telegram')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg></span><span>Telegram</span></button>
+          <button class="type-tab" data-type="youtube" onclick="setType('youtube')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span><span>YouTube</span></button>
+          <button class="type-tab" data-type="tiktok" onclick="setType('tiktok')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span><span>TikTok</span></button>
+          <button class="type-tab" data-type="x" onclick="setType('x')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span><span>X</span></button>
+          <button class="type-tab" data-type="linkedin" onclick="setType('linkedin')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span><span>LinkedIn</span></button>
+          <button class="type-tab" data-type="paypal" onclick="setType('paypal')"><span class="tt-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.983 5.05-4.349 6.797-8.647 6.797h-2.19c-.524 0-.968.382-1.05.9l-1.12 7.106zm14.146-14.42a3.35 3.35 0 0 0-.607-.541c-.013.076-.026.175-.041.254-.93 4.778-4.005 7.201-9.138 7.201h-2.19a.563.563 0 0 0-.556.479l-1.187 7.527h-.506l-.24 1.516a.56.56 0 0 0 .554.647h3.882c.46 0 .85-.334.922-.788.06-.26.76-4.852.816-5.09a.932.932 0 0 1 .923-.788h.58c3.76 0 6.705-1.528 7.565-5.946.36-1.847.174-3.388-.777-4.471z"/></svg></span><span>PayPal</span></button>
+          <button class="type-tab" data-type="mecard" onclick="setType('mecard')"><span class="tt-ico">🪪</span><span>MeCard</span></button>
+          <button class="type-tab" data-type="app" onclick="setType('app')"><span class="tt-ico">📱</span><span>App / Loja</span></button>
+          <button class="type-tab" data-type="zoom" onclick="setType('zoom')"><span class="tt-ico">🎥</span><span>Zoom</span></button>
         </div>
 
         <div id="genFields" style="margin-top:14px">
@@ -194,21 +224,70 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <details class="adv">
-          <summary>Opções avançadas</summary>
-          <div class="adv-body">
-            <label class="fld" for="genEcl">Correção de erro</label>
-            <select id="genEcl">
-              <option value="LOW">Baixa (mais dados)</option>
-              <option value="MEDIUM" selected>Média</option>
-              <option value="QUARTILE">Alta</option>
-              <option value="HIGH">Máxima (mais robusto)</option>
-            </select>
-            <p class="hint" style="margin-top:8px">Ao adicionar um logotipo, a correção é elevada automaticamente para manter a leitura.</p>
+          <!-- Instagram -->
+          <div class="fgroup" data-fields="instagram" hidden>
+            <label class="fld req" for="f_ig">Usuário do Instagram</label>
+            <input type="text" id="f_ig" placeholder="@usuario ou link do perfil">
           </div>
-        </details>
+          <!-- Facebook -->
+          <div class="fgroup" data-fields="facebook" hidden>
+            <label class="fld req" for="f_fb">Usuário ou página</label>
+            <input type="text" id="f_fb" placeholder="usuario ou link do perfil">
+          </div>
+          <!-- Telegram -->
+          <div class="fgroup" data-fields="telegram" hidden>
+            <label class="fld req" for="f_tg">Usuário do Telegram</label>
+            <input type="text" id="f_tg" placeholder="@usuario ou link">
+          </div>
+          <!-- YouTube -->
+          <div class="fgroup" data-fields="youtube" hidden>
+            <label class="fld req" for="f_yt">Canal (@) ou link</label>
+            <input type="text" id="f_yt" placeholder="@canal ou link do vídeo">
+          </div>
+          <!-- TikTok -->
+          <div class="fgroup" data-fields="tiktok" hidden>
+            <label class="fld req" for="f_tt">Usuário do TikTok</label>
+            <input type="text" id="f_tt" placeholder="@usuario ou link">
+          </div>
+          <!-- X (Twitter) -->
+          <div class="fgroup" data-fields="x" hidden>
+            <label class="fld req" for="f_x">Usuário do X (Twitter)</label>
+            <input type="text" id="f_x" placeholder="@usuario ou link">
+          </div>
+          <!-- LinkedIn -->
+          <div class="fgroup" data-fields="linkedin" hidden>
+            <label class="fld req" for="f_li">Perfil do LinkedIn</label>
+            <input type="text" id="f_li" placeholder="usuario ou link do perfil">
+          </div>
+          <!-- PayPal.me -->
+          <div class="fgroup" data-fields="paypal" hidden>
+            <label class="fld req" for="f_pp">Usuário do PayPal.me</label>
+            <input type="text" id="f_pp" placeholder="seuusuario">
+            <label class="fld" for="f_ppamt" style="margin-top:12px">Valor (opcional)</label>
+            <input type="text" id="f_ppamt" placeholder="49.90" inputmode="decimal">
+          </div>
+          <!-- MeCard -->
+          <div class="fgroup" data-fields="mecard" hidden>
+            <label class="fld req" for="f_mcname">Nome completo</label>
+            <input type="text" id="f_mcname" placeholder="Maria Silva">
+            <label class="fld" for="f_mctel" style="margin-top:12px">Telefone</label>
+            <input type="text" id="f_mctel" placeholder="(11) 99999-9999" inputmode="tel">
+            <label class="fld" for="f_mcemail" style="margin-top:12px">E-mail</label>
+            <input type="text" id="f_mcemail" placeholder="email@exemplo.com" inputmode="email">
+          </div>
+          <!-- App / Loja -->
+          <div class="fgroup" data-fields="app" hidden>
+            <label class="fld req" for="f_app">Link da loja (Play Store / App Store)</label>
+            <input type="text" id="f_app" placeholder="play.google.com/store/apps/..." inputmode="url">
+          </div>
+          <!-- Zoom -->
+          <div class="fgroup" data-fields="zoom" hidden>
+            <label class="fld req" for="f_zoomid">ID da reunião</label>
+            <input type="text" id="f_zoomid" placeholder="123 4567 8901" inputmode="numeric">
+            <label class="fld" for="f_zoompwd" style="margin-top:12px">Senha (opcional)</label>
+            <input type="text" id="f_zoompwd" placeholder="senha da reunião">
+          </div>
+        </div>
 
         <div style="margin-top:14px" class="grid2">
           <button class="btn ghost" onclick="showFormatted()">Ver texto formatado</button>
@@ -234,6 +313,7 @@
           <button class="ctab" data-ctab="shape" onclick="setCustomTab('shape')">◼️ Formas</button>
           <button class="ctab" data-ctab="logo" onclick="setCustomTab('logo')">🖼️ Logo</button>
           <button class="ctab" data-ctab="frame" onclick="setCustomTab('frame')">🔲 Moldura</button>
+          <button class="ctab" data-ctab="adv" onclick="setCustomTab('adv')">⚙️ Avançado</button>
         </div>
 
         <!-- Cor -->
@@ -254,6 +334,25 @@
               </div>
             </div>
           </div>
+          <label class="check" style="margin-top:10px">
+            <input type="checkbox" id="bgTransp" onchange="setBgTransparent(this.checked)"> Fundo transparente
+          </label>
+          <div class="row" style="margin-top:12px">
+            <div>
+              <label class="fld" for="c_ef">Moldura do olho</label>
+              <div class="color-field">
+                <input type="color" id="c_ef" value="#0f172a" oninput="setEyeColor('frame', this.value)">
+                <input type="text" class="hex" id="c_ef_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setEyeHex('frame', this.value)">
+              </div>
+            </div>
+            <div>
+              <label class="fld" for="c_ec">Centro do olho</label>
+              <div class="color-field">
+                <input type="color" id="c_ec" value="#0f172a" oninput="setEyeColor('center', this.value)">
+                <input type="text" class="hex" id="c_ec_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setEyeHex('center', this.value)">
+              </div>
+            </div>
+          </div>
           <div class="swatches" id="colorPresets">
             <button class="swatch" style="--a:#0f172a;--b:#ffffff" title="Clássico" onclick="applyPreset('#0f172a','#ffffff')"></button>
             <button class="swatch" style="--a:#1d4ed8;--b:#ffffff" title="Azul" onclick="applyPreset('#1d4ed8','#ffffff')"></button>
@@ -266,12 +365,17 @@
 
         <!-- Formas -->
         <div class="cpanel" data-panel="shape" hidden>
-          <div class="opts" id="shapeOpts">
-            <button class="opt active" data-shape="solid" onclick="setShape('solid')"><span class="opt-ico sl"></span>Contínuo</button>
-            <button class="opt" data-shape="rounded" onclick="setShape('rounded')"><span class="opt-ico rd"></span>Arredondado</button>
-            <button class="opt" data-shape="dots" onclick="setShape('dots')"><span class="opt-ico dt"></span>Pontos</button>
-            <button class="opt" data-shape="classy" onclick="setShape('classy')"><span class="opt-ico cl"></span>Elegante</button>
-          </div>
+          <label class="fld">Corpo</label>
+          <!-- Botões gerados de ./qr/shapes (registro BODY) em buildShapeControls(). -->
+          <div class="opts" id="shapeOpts"></div>
+
+          <label class="fld" style="margin-top:12px">Moldura do olho</label>
+          <div class="opts" id="eyeFrameOpts"></div>
+
+          <label class="fld" style="margin-top:12px">Centro do olho</label>
+          <div class="opts" id="eyeCenterOpts"></div>
+          <p class="hint" style="margin-top:6px">“Automático” combina com o corpo. Centros em forma de ícone (coração, estrela, losango…) desenham os módulos isolados, mesmo com um corpo conectado.</p>
+
           <label class="fld" style="margin-top:12px">Contorno</label>
           <div class="opts" id="qrShapeOpts">
             <button class="opt active" data-qrshape="square" onclick="setQrShape('square')">
@@ -287,7 +391,11 @@
 
         <!-- Logo -->
         <div class="cpanel" data-panel="logo" hidden>
-          <p class="hint" style="margin-top:0">Adicione um logotipo ao centro do QR. Use uma imagem quadrada (PNG com fundo transparente fica melhor).</p>
+          <label class="fld">Logos prontos</label>
+          <label class="check" style="margin:0 0 10px"><input type="checkbox" id="logoMono" checked onchange="setLogoMono(this.checked)"> Monocromático (usa as cores do QR)</label>
+          <!-- Galeria gerada de ./qr/logos (registro LOGOS) em buildLogoControls(). -->
+          <div class="logos" id="logoPresets"></div>
+          <p class="hint" style="margin-top:12px">Ou envie a sua imagem (quadrada; PNG com fundo transparente fica melhor). Um logo cobre parte do QR — mantenha a correção de erro alta.</p>
           <div class="grid2">
             <button class="btn ghost" onclick="document.getElementById('logoInput').click()">Escolher imagem</button>
             <button class="btn ghost" id="logoRemove" hidden onclick="removeLogo()">Remover logo</button>
@@ -319,6 +427,19 @@
             <label class="fld" for="c_caption">Legenda</label>
             <input type="text" id="c_caption" value="ESCANEIE" maxlength="45" oninput="setCaption(this.value)">
           </div>
+        </div>
+
+        <!-- Avançado -->
+        <div class="cpanel" data-panel="adv" hidden>
+          <label class="fld" for="genEcl">Correção de erro</label>
+          <select id="genEcl" onchange="onEclChange()">
+            <option value="AUTO" selected>Automático</option>
+            <option value="LOW">Baixa (mais dados)</option>
+            <option value="MEDIUM">Média</option>
+            <option value="QUARTILE">Alta</option>
+            <option value="HIGH">Máxima (mais robusto)</option>
+          </select>
+          <p class="hint" style="margin-top:8px">No modo automático, a correção sobe sozinha com logo ou formas de ícone, para manter a leitura.</p>
         </div>
       </details>
 
