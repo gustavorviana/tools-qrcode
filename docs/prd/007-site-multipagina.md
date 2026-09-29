@@ -21,13 +21,13 @@
 ## 3. Cenários de uso
 - Busco "qr code wifi" no Google, caio direto em `/wifi/`, preencho a rede e baixo o QR sem passar pela home.
 - Abro o site pela primeira vez, vejo os tipos em cards, escolho "WhatsApp" e entendo pela página o que vai acontecer.
-- Quero um tipo menos comum (Zoom). Na home, toco no card "Zoom" em "Outros tipos" e caio em `/zoom/`.
+- Quero um tipo menos comum (Zoom). Na home, toco no divisor "Mais tipos", a lista se expande e toco em "Zoom", que abre `/zoom/`.
 - Recebo um link compartilhado antigo (`/#q=…`) e ele continua abrindo o QR.
 
 ## 4. Requisitos funcionais
 | ID | Requisito | Prioridade |
 |---|---|---|
-| WEB-F01 | Home com H1, cards de todos os tipos (ícone, nome, descrição, seta) em duas seções — "Mais usados" (8) e "Outros tipos" (13) — e card para o leitor | Must |
+| WEB-F01 | Home com H1, cards dos 8 tipos mais usados (ícone, nome, descrição, seta), um divisor "Mais tipos" que expande os cards dos outros 13 tipos, e card para o leitor | Must |
 | WEB-F02 | Home com as seções "Como funciona" (3 passos) e "Sobre" (`#sobre`) | Must |
 | WEB-F03 | Uma página por tipo (21): `/link/`, `/wifi/`, `/whatsapp/`, `/texto/`, `/contato/`, `/email/`, `/telefone/`, `/instagram/`, `/sms/`, `/local/`, `/evento/`, `/facebook/`, `/telegram/`, `/youtube/`, `/tiktok/`, `/x/`, `/linkedin/`, `/paypal/`, `/mecard/`, `/app/`, `/zoom/` | Must |
 | WEB-F05 | Páginas `/ler/` (leitor) e `/privacidade/` | Must |
@@ -51,7 +51,7 @@
 ## 6. Configurações
 | Configuração | Padrão | Faixa |
 |---|---|---|
-| Tipos em destaque na home (`MAIN_TYPES`) | link, wifi, whatsapp, text, vcard, email, tel, instagram | qualquer tipo de `TYPES` (os demais vão para "Outros tipos") |
+| Tipos em destaque na home (`MAIN_TYPES`) | link, wifi, whatsapp, text, vcard, email, tel, instagram | qualquer tipo de `TYPES` (os demais ficam atrás do divisor "Mais tipos") |
 
 ## 7. Critérios de aceite
 - [ ] `npm run build` gera `dist/index.html` e uma pasta por página do catálogo.

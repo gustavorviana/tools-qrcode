@@ -96,6 +96,8 @@ describe('renderPage', () => {
   it('a home tem um card por tipo, a visualização de link compartilhado e o #sobre', () => {
     const h = html('/');
     [...MAIN_TYPES, ...OTHER_TYPES].forEach((id) => expect(h).toContain(`<a class="type-card" href="${typeHref(id)}">`));
+    expect(h).toContain('<details class="more-types">');
+    expect(h).not.toContain('Outros tipos');
     expect(h).toContain('id="view-share"');
     expect(h).toContain('id="homeMain"');
     expect(h).toContain('id="sobre"');

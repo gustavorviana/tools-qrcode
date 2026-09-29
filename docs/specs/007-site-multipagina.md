@@ -52,7 +52,7 @@ interface Templates { layout; pages: Record<kind, string>; partials: Record<stri
 |---|---|
 | `/` | home |
 | `/link/`, `/wifi/`, `/whatsapp/`, `/texto/`, `/contato/`, `/email/`, `/telefone/`, `/instagram/` | tipos em destaque |
-| `/sms/`, `/local/`, `/evento/`, `/facebook/`, `/telegram/`, `/youtube/`, `/tiktok/`, `/x/`, `/linkedin/`, `/paypal/`, `/mecard/`, `/app/`, `/zoom/` | outros tipos |
+| `/sms/`, `/local/`, `/evento/`, `/facebook/`, `/telegram/`, `/youtube/`, `/tiktok/`, `/x/`, `/linkedin/`, `/paypal/`, `/mecard/`, `/app/`, `/zoom/` | demais tipos (atrás de \"Mais tipos\" na home) |
 | `/ler/` | leitor |
 | `/privacidade/` | privacidade |
 
@@ -95,8 +95,8 @@ No `App` (`src/app.ts`):
 - **Cabeçalho** fixo (`.site-header`): marca + nav, com `aria-current` na seção atual.
 - **Home:**
   - hero com selo "100% no seu navegador";
-  - `.type-grid` (1/2/3 colunas em <640/≥640/≥960 px) com `.type-card`;
-  - `.type-chips`;
+  - `.type-grid` (1/2/3 colunas em <640/≥640/≥960 px) com `.type-card` dos 8 tipos em destaque;
+  - divisor `<details class="more-types">` ("——— Mais tipos ⌄ ———") que expande os cards dos demais tipos. Os links ficam no HTML mesmo com ele fechado, e ele funciona sem JS;
   - `.read-card` escuro;
   - "Como funciona" (`.how-steps`);
   - "Sobre" (`.pillars` + cards de privacidade, instalar, créditos, projeto).
