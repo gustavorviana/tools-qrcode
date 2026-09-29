@@ -129,6 +129,7 @@ await copyFile(
 const cacheId = `${version}-${hashOf(assetHash, ...htmls)}`;
 const sw = (await readFile('public/sw.js', 'utf8'))
   .replaceAll('__BUILD_HASH__', cacheId)
+  .replaceAll('__ASSET_HASH__', assetHash)
   .replace("'__PAGES__'", written.map((p) => `'${p}'`).join(', '));
 await writeFile(path.join(OUT, 'sw.js'), sw);
 

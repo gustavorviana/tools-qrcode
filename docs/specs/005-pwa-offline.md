@@ -24,7 +24,7 @@
 |---|---|
 | Cache do app | `qr-utils-<versão>-<hash>` (hash do conteúdo de JS, CSS e páginas) |
 | Cache de compartilhamento | `qr-utils-share`, chave `shared-image` |
-| Precache | todas as páginas do catálogo (`/`, `/wifi/`, `/ler/`…), `app.js`, `app.css`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `og-image.png`, `screenshot-narrow.png`, `screenshot-wide.png`, `zxing_reader.wasm` |
+| Precache | todas as páginas do catálogo (`/`, `/wifi/`, `/ler/`…), `app.js?v=<hash>`, `app.css?v=<hash>`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `og-image.png`, `screenshot-narrow.png`, `screenshot-wide.png`, `zxing_reader.wasm` |
 | `localStorage` | `installDismissed = '1'` |
 
 Manifesto: `id "/"`, `start_url "./"`, `scope "./"`, `display standalone`, `orientation portrait`, `lang pt-BR`, `categories [utilities, productivity]`, `launch_handler.client_mode navigate-existing`, `edge_side_panel.preferred_width 400`.
@@ -52,7 +52,7 @@ promptInstall(): void
 2. `POST …/share-target`: lê o `formData`, guarda o campo `image` em `qr-utils-share/shared-image` e responde `303` para `/ler/?share-target=1`.
 3. Não-GET: não intercepta.
 4. Navegação: `fetch(req, { cache: 'no-cache' })`, guarda a cópia sob a chave da página (`pageKey`: caminho sem query, com barra final) e retorna. Offline, usa essa chave ou `/` do cache e, na falta deles, `Response.error()`.
-5. Demais: cache primeiro (ignorando a query `?v=`). Na falta, busca, guarda se `ok` e retorna.
+5. Demais: cache primeiro, com casamento exato da URL (inclusive o `?v=<hash>`); na falta, busca, guarda se `ok` e retorna. Assim um `app.css?v=<hash novo>` nunca recebe o arquivo antigo, nem na 1ª carga após um deploy.
 
 **Inicialização (`handleLaunch`)**
 - `?view=gen|read|about` abre a aba.

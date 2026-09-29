@@ -16,8 +16,9 @@ const SHARE_CACHE = CACHE_PREFIX + 'share';
 const PAGES = ['__PAGES__'];
 const ASSETS = [
   ...PAGES,
-  '/app.js',
-  '/app.css',
+  // URLs exatas pedidas pelas páginas (o build injeta o hash do conteúdo).
+  '/app.js?v=__ASSET_HASH__',
+  '/app.css?v=__ASSET_HASH__',
   '/manifest.webmanifest',
   '/icon.svg',
   '/icon-192.png',
@@ -116,8 +117,10 @@ self.addEventListener('fetch', (e) => {
 
   // Demais assets: cache-first, com atualização em segundo plano quando online.
   e.respondWith((async () => {
-    // `?v=<versão>` só serve para furar o cache HTTP; o cache do SW já é versionado.
-    const cached = await caches.match(req, { ignoreSearch: true });
+    // Casamento exato, inclusive a query: um `?v=<hash>` novo nunca recebe o
+    // arquivo antigo do cache — mesmo na 1ª carga após um deploy, quando quem
+    // atende ainda é o SW anterior.
+    const cached = await caches.match(req);
     if (cached) return cached;
     try {
       const resp = await fetch(req);
