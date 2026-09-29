@@ -1,0 +1,61 @@
+<div class="card">
+  <label class="fld">Privacidade</label>
+  <p class="muted priv-p">
+    Não coletamos dados: tudo é processado no seu dispositivo, sem cookies nem rastreadores.
+  </p>
+  <a href="/privacidade/" style="display:inline-block;margin-top:10px;font-size:13.5px;font-weight:600">
+    Ver política de privacidade →
+  </a>
+</div>
+
+<div class="card" id="aboutInstallCard">
+  <label class="fld">Instalar como app</label>
+  <p class="muted" style="margin:0 0 12px;font-size:13.5px;line-height:1.5">
+    Adicione o QR Utils à tela inicial para abrir como um aplicativo, em tela cheia e offline.
+  </p>
+  <button class="btn" onclick="promptInstall()">Instalar como app</button>
+  <p class="muted" id="aboutInstallHint" style="margin:10px 0 0;font-size:12px;line-height:1.5"></p>
+</div>
+
+<div class="card">
+  <label class="fld">Bibliotecas e créditos</label>
+  <ul class="credits">
+    <li>
+      <div class="credit-name">jsQR <span class="lic">MIT</span></div>
+      <span class="desc">Decodificação (leitura) de QR Code, embutida no app.</span>
+      <a href="https://github.com/cozmo/jsQR" target="_blank" rel="noopener">github.com/cozmo/jsQR</a>
+    </li>
+    <li>
+      <div class="credit-name">zxing-wasm · ZXing-C++ <span class="lic">Apache-2.0 · MIT</span></div>
+      <span class="desc">Leitura de código de barras (ZXing-C++ compilado para WebAssembly), embutida no app e executada 100% no dispositivo.</span>
+      <a href="https://github.com/Sec-ant/zxing-wasm" target="_blank" rel="noopener">github.com/Sec-ant/zxing-wasm</a>
+    </li>
+    <li>
+      <div class="credit-name">qr-code-styling <span class="lic">MIT</span></div>
+      <span class="desc">Codificação e desenho do QR Code (formas conectadas, logo), embutida no app.</span>
+      <a href="https://github.com/kozakdenys/qr-code-styling" target="_blank" rel="noopener">github.com/kozakdenys/qr-code-styling</a>
+    </li>
+    <li>
+      <div class="credit-name">qrcode-generator · Kazuhiko Arase <span class="lic">MIT</span></div>
+      <span class="desc">Algoritmo de geração da matriz do QR Code (usado pela qr-code-styling).</span>
+      <a href="https://github.com/kazuhikoarase/qrcode-generator" target="_blank" rel="noopener">github.com/kazuhikoarase/qrcode-generator</a>
+    </li>
+  </ul>
+</div>
+
+<div class="card">
+  <label class="fld">Projeto</label>
+  <p class="muted" style="margin:0 0 12px;font-size:13.5px;line-height:1.5">
+    Código-fonte, histórico e issues no GitHub.
+  </p>
+  <a class="linkbtn" href="https://github.com/gustavorviana/tools-qrcode" target="_blank" rel="noopener">
+    Ver repositório no GitHub
+  </a>
+  <p class="muted" style="margin:14px 0 0;font-size:12.5px;text-align:center;line-height:1.5">
+    Criado por Gustavo Viana, desenvolvido com
+    <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a> (Anthropic).
+  </p>
+  <p class="muted" style="margin:10px 0 0;font-size:11.5px;text-align:center;opacity:.75">
+    Versão <span id="appVersion">__VERSION__</span>
+  </p>
+</div>

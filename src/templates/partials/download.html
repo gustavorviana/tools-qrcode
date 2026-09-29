@@ -1,0 +1,21 @@
+<!-- ===== Passo 3 — Baixar ===== -->
+<div class="card step" id="step3" hidden>
+  <div class="step-head"><span class="step-num">3</span> Baixar</div>
+  <div class="qr-preview" id="qrPreview" onclick="openModal()" title="Toque para ampliar"></div>
+  <div class="hint" style="text-align:center;margin-top:0">Toque no QR para ampliar</div>
+  <label class="fld" for="pngSize">Tamanho do PNG</label>
+  <select id="pngSize" onchange="setPngSize(Number(this.value))">
+    <option value="512">512 × 512 px</option>
+    <option value="1024" selected>1024 × 1024 px</option>
+    <option value="2048">2048 × 2048 px</option>
+    <option value="4096">4096 × 4096 px</option>
+  </select>
+  <div class="grid2" style="margin-top:10px">
+    <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>
+    <button class="btn ghost" onclick="downloadSVG()">Baixar SVG</button>
+  </div>
+  <button class="btn ok" style="margin-top:10px" onclick="shareQR()">Compartilhar imagem</button>
+  <button class="btn ghost" style="margin-top:10px" onclick="shareLink()">Compartilhar link do QR</button>
+  <p class="hint" id="shareLinkNote" hidden style="margin-top:6px;color:#a16207">ⓘ O logo <b>não</b> vai no link compartilhado — para mantê-lo, use “Baixar PNG” ou “Compartilhar imagem”.</p>
+  <div class="hint" id="qrMeta"></div>
+</div>

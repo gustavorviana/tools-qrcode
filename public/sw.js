@@ -1,6 +1,6 @@
 /* Service Worker — cache offline do QR Utils.
-   Único arquivo .js "separado" exigido pela plataforma (SW não pode ser inline).
-   Toda a lógica do app está embutida no index.html. */
+   O build injeta a versão (nome do cache) e a lista de páginas do site
+   (__PAGES__), para que todas funcionem offline já após a primeira visita. */
 const CACHE_PREFIX = 'qr-utils-';
 // A versão é o commit atual, injetado pelo build.mjs (SHA do Cloudflare Pages ou
 // do git). Cada commit em main gera um sw.js diferente → o navegador detecta a
@@ -10,22 +10,26 @@ const CACHE = CACHE_PREFIX + '__BUILD_HASH__';
 // Cache transitório para a imagem recebida via share_target (não é versionado
 // nem removido na limpeza de versões).
 const SHARE_CACHE = CACHE_PREFIX + 'share';
-// Nota: usamos './' (URL canônica, responde 200) e NÃO './index.html', que os
-// servidores de estáticos (serve, Cloudflare Pages) redirecionam (301) para './'
-// — e a Cache API não armazena respostas redirecionadas.
+// Páginas do site ('/', '/wifi/', '/ler/'…), injetadas pelo build.mjs.
+// Nota: usamos as URLs com barra final (canônicas, respondem 200) e NÃO
+// '…/index.html', que os servidores de estáticos redirecionam (301) — e a
+// Cache API não armazena respostas redirecionadas.
+const PAGES = ['__PAGES__'];
 const ASSETS = [
-  './',
-  './manifest.webmanifest',
-  './icon.svg',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
-  './og-image.png',
-  './screenshot-narrow.png',
-  './screenshot-wide.png',
+  ...PAGES,
+  '/app.js',
+  '/app.css',
+  '/manifest.webmanifest',
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable-512.png',
+  '/og-image.png',
+  '/screenshot-narrow.png',
+  '/screenshot-wide.png',
   // Leitor de código de barras (ZXing-C++ em WebAssembly). Precache para que a
   // leitura funcione offline já na primeira carga.
-  './zxing_reader.wasm',
+  '/zxing_reader.wasm',
 ];
 
 self.addEventListener('install', (e) => {
@@ -54,6 +58,13 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+/** Chave de cache de uma página: o caminho, sem query/hash, com barra final. */
+function pageKey(url) {
+  let p = url.pathname.replace(/index\.html$/, '');
+  if (!p.endsWith('/')) p += '/';
+  return p;
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
 
@@ -75,15 +86,15 @@ self.addEventListener('fetch', (e) => {
           }));
         }
       } catch { /* imagem ausente/ilegível → segue para a página mesmo assim */ }
-      return Response.redirect(new URL('./?share-target=1', self.registration.scope).href, 303);
+      return Response.redirect(new URL('/ler/?share-target=1', self.registration.scope).href, 303);
     })());
     return;
   }
 
   if (req.method !== 'GET') return;
 
-  // Navegação (abrir/recarregar a página): busca na rede e cai para o HTML
-  // cacheado quando offline. Cobre qualquer URL (/, /index.html, etc.).
+  // Navegação (abrir/recarregar uma página): busca na rede e cai para o HTML
+  // cacheado daquela página quando offline (ou para a home, se não houver).
   // `cache: 'no-cache'` revalida via ETag em vez de baixar tudo: o servidor
   // responde 304 (poucos bytes) quando o HTML não mudou e só manda o corpo
   // inteiro quando muda — nunca serve HTML velho, sem redownload à toa.
@@ -93,11 +104,11 @@ self.addEventListener('fetch', (e) => {
       try {
         const fresh = await fetch(req, { cache: 'no-cache' });
         const copy = fresh.clone();
-        caches.open(CACHE).then((c) => c.put('./', copy)).catch(() => {});
+        if (fresh.ok) caches.open(CACHE).then((c) => c.put(pageKey(url), copy)).catch(() => {});
         return fresh;
       } catch {
-        return (await caches.match('./'))
-          || (await caches.match('./index.html'))
+        return (await caches.match(pageKey(url)))
+          || (await caches.match('/'))
           || Response.error();
       }
     })());
@@ -106,7 +117,8 @@ self.addEventListener('fetch', (e) => {
 
   // Demais assets: cache-first, com atualização em segundo plano quando online.
   e.respondWith((async () => {
-    const cached = await caches.match(req);
+    // `?v=<versão>` só serve para furar o cache HTTP; o cache do SW já é versionado.
+    const cached = await caches.match(req, { ignoreSearch: true });
     if (cached) return cached;
     try {
       const resp = await fetch(req);

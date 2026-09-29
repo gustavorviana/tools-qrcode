@@ -1,0 +1,24 @@
+<div class="card">
+  <div class="ctabs" id="readModeTabs" style="margin-bottom:12px">
+    <button class="ctab active" data-readmode="auto" onclick="setReadMode('auto')">Automático</button>
+    <button class="ctab" data-readmode="qr" onclick="setReadMode('qr')">QR Code</button>
+    <button class="ctab" data-readmode="barcode" onclick="setReadMode('barcode')">Barras</button>
+  </div>
+  <div class="scan-box" id="scanBox">
+    <video id="video" playsinline muted></video>
+    <div class="reticle"></div>
+  </div>
+
+  <div class="stack">
+    <button class="btn" id="camBtn" onclick="toggleCamera()">Escanear com a câmera</button>
+    <button class="btn ghost" onclick="document.getElementById('fileInput').click()">Ler de uma imagem</button>
+    <input type="file" id="fileInput" accept="image/*" hidden onchange="readFromFile(event)">
+  </div>
+  <div id="readErr" class="err"></div>
+  <div class="hint" id="readHint"></div>
+</div>
+
+<div class="card" id="resultCard" style="display:none">
+  <label class="fld">Resultado</label>
+  <div id="resultDetail"></div>
+</div>

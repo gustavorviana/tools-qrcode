@@ -1,0 +1,20 @@
+<!-- Wi-Fi -->
+<div class="fgroup" data-fields="wifi">
+  <label class="fld req" for="f_ssid">Nome da rede (SSID)</label>
+  <input type="text" id="f_ssid" placeholder="MinhaRede">
+  <label class="fld req" id="lbl_pass" for="f_pass" style="margin-top:12px">Senha</label>
+  <input type="text" id="f_pass" placeholder="senha123">
+  <div class="row" style="margin-top:12px">
+    <div>
+      <label class="fld" for="f_sec">Segurança</label>
+      <select id="f_sec" onchange="toggleWifiPass()">
+        <option value="WPA">WPA/WPA2</option>
+        <option value="WEP">WEP</option>
+        <option value="nopass">Nenhuma (aberta)</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:flex-end;padding-bottom:11px">
+      <label class="check"><input type="checkbox" id="f_hidden"> Rede oculta</label>
+    </div>
+  </div>
+</div>
