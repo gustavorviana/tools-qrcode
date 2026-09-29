@@ -15,19 +15,13 @@ Para cada tipo de QR (Wi-Fi, contato, evento, WhatsApp…) existe um formato de 
 - Mostrar o texto exato que será codificado, para quem quiser conferir.
 - Gerar o QR no navegador, em poucos toques, a partir do celular.
 
-## 3. Fora de escopo
-- Gerar Pix (BR Code). Hoje o app só lê Pix ([PRD-004](004-leitura.md)).
-- Geração em lote (vários QR de uma planilha).
-- Encurtar ou rastrear links.
-- Gerar código de barras 1D.
-
-## 4. Cenários de uso
+## 3. Cenários de uso
 - Estou configurando o Wi-Fi de casa para visitas, preencho rede e senha e espero um QR que o celular conecte ao escanear.
 - Vou imprimir um cartão de visita, preencho nome, telefone e e-mail e espero que o QR salve o contato na agenda de quem escanear.
 - Divulgo um evento, preencho título, data e local e espero que o QR adicione o evento à agenda.
 - Tenho um perfil no Instagram, digito só `@meuperfil` e espero o link completo.
 
-## 5. Requisitos funcionais
+## 4. Requisitos funcionais
 | ID | Requisito | Prioridade |
 |---|---|---|
 | GEN-F01 | Tipos Texto, Link, Wi-Fi, E-mail, Telefone, SMS, WhatsApp, Contato (vCard), Local e Evento | Must |
@@ -42,7 +36,7 @@ Para cada tipo de QR (Wi-Fi, contato, evento, WhatsApp…) existe um formato de 
 | GEN-F10 | Fluxo em etapas: Conteúdo → Personalizar (opcional) → Baixar, com botão para voltar e editar | Must |
 | GEN-F11 | Exibir versão, nível de correção e tamanho da matriz do QR gerado | Could |
 
-## 6. Requisitos não funcionais
+## 5. Requisitos não funcionais
 | ID | Requisito |
 |---|---|
 | GEN-N01 | Payload montado e QR gerado 100% no navegador. |
@@ -51,7 +45,7 @@ Para cada tipo de QR (Wi-Fi, contato, evento, WhatsApp…) existe um formato de 
 | GEN-N04 | O payload segue os formatos de fato lidos pelas câmeras de Android e iOS (`WIFI:`, vCard 3.0, iCalendar, `geo:`, `mailto:`, `tel:`, `SMSTO:`). |
 | GEN-N05 | Os valores digitados em cada tipo ficam preservados ao trocar de tipo. |
 
-## 7. Configurações
+## 6. Configurações
 | Configuração | Padrão | Faixa |
 |---|---|---|
 | Tipo inicial | Texto | 21 tipos |
@@ -59,7 +53,7 @@ Para cada tipo de QR (Wi-Fi, contato, evento, WhatsApp…) existe um formato de 
 | Rede oculta | desligado | ligado/desligado |
 | Posição inicial do mapa | centro do Brasil, zoom 4 | zoom 2–19 |
 
-## 8. Critérios de aceite
+## 7. Critérios de aceite
 - [ ] Wi-Fi com `;` e `:` na senha gera um QR que conecta num Android e num iPhone.
 - [ ] O contato gerado é salvo corretamente pela câmera do iOS e do Android.
 - [ ] O evento gerado é aberto pelo app de agenda.
@@ -68,7 +62,7 @@ Para cada tipo de QR (Wi-Fi, contato, evento, WhatsApp…) existe um formato de 
 - [ ] Sem abrir o mapa, nenhuma requisição ao OpenStreetMap acontece.
 - [ ] As funções puras de formato passam em `tests/format.test.ts`.
 
-## 9. Questões em aberto
+## 8. Questões em aberto
 - **Gerar Pix?** Provisório: não. É candidato forte (muita busca no Brasil e o app já sabe ler BR Code); deve ter PRD próprio.
 - **Fuso do evento:** as datas saem em hora local, sem fuso. Provisório: manter.
 - **Duplicidade vCard × MeCard:** manter os dois; o MeCard é mais compacto e gera QR menor.

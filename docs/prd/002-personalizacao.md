@@ -16,19 +16,12 @@ Um QR preto e branco não combina com material de marca. As ferramentas que pers
 - Proteger a leitura: subir a correção de erro sozinho quando a personalização a prejudica.
 - Manter a personalização opcional e recolhida para não atrapalhar o fluxo básico.
 
-## 3. Fora de escopo
-- Gradientes nas cores dos módulos.
-- Imagem de fundo atrás do QR.
-- Editor livre (arrastar elementos, textos em qualquer posição).
-- Salvar "modelos" de estilo no dispositivo.
-- Verificar automaticamente o contraste entre as cores.
-
-## 4. Cenários de uso
+## 3. Cenários de uso
 - Tenho uma cafeteria, quero o QR do cardápio na cor da marca com o logo no centro e uma faixa "ESCANEIE O CARDÁPIO".
 - Vou imprimir o QR sobre um fundo colorido e preciso do PNG com fundo transparente.
 - Quero um QR com módulos de coração para um convite de casamento e espero que continue lendo.
 
-## 5. Requisitos funcionais
+## 4. Requisitos funcionais
 | ID | Requisito | Prioridade |
 |---|---|---|
 | CUS-F01 | Cor dos módulos e do fundo por seletor ou hex (3 ou 6 dígitos) | Must |
@@ -45,7 +38,7 @@ Um QR preto e branco não combina com material de marca. As ferramentas que pers
 | CUS-F12 | Correção de erro Automática (padrão), Baixa, Média, Alta ou Máxima | Must |
 | CUS-F13 | Prévia ao vivo após a primeira geração | Must |
 
-## 6. Requisitos não funcionais
+## 5. Requisitos não funcionais
 | ID | Requisito |
 |---|---|
 | CUS-N01 | O logo enviado é lido localmente e nunca sai do dispositivo. |
@@ -54,7 +47,7 @@ Um QR preto e branco não combina com material de marca. As ferramentas que pers
 | CUS-N04 | O resultado é vetorial (SVG); a personalização não depende da resolução de exportação. |
 | CUS-N05 | Adicionar uma forma, logo ou moldura é só registrá-la, sem mexer em UI ou em validação. |
 
-## 7. Configurações
+## 6. Configurações
 | Configuração | Padrão | Faixa |
 |---|---|---|
 | Cor dos módulos | `#0f172a` | qualquer hex |
@@ -68,7 +61,7 @@ Um QR preto e branco não combina com material de marca. As ferramentas que pers
 | Legenda | `ESCANEIE` | até 45 caracteres |
 | Correção de erro | Automático | Auto, L, M, Q, H |
 
-## 8. Critérios de aceite
+## 7. Critérios de aceite
 - [ ] Cada forma de corpo gera um QR que a câmera do celular lê (com correção automática).
 - [ ] Com um logo pronto, a correção efetiva vira H e o QR continua legível.
 - [ ] Centro de olho "coração" com corpo "Contínuo" desenha um coração, não um quadrado.
@@ -76,6 +69,6 @@ Um QR preto e branco não combina com material de marca. As ferramentas que pers
 - [ ] Uma legenda longa quebra em duas linhas sem sair da moldura.
 - [ ] Os testes de formas, renderer, logos e molduras passam.
 
-## 9. Questões em aberto
+## 8. Questões em aberto
 - **Aviso de contraste baixo** (ex.: amarelo sobre branco)? Provisório: não há aviso.
 - **Contorno circular com formas isoladas:** hoje é ignorado (vira quadrado) sem avisar a pessoa. Provisório: manter.

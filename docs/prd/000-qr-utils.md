@@ -25,20 +25,13 @@ Quem precisa gerar ou ler um QR Code costuma cair em ferramentas que:
 - Ser auditável: código aberto (MIT) e build em um único `index.html`.
 - Manter o fluxo principal curto (conteúdo → gerar → baixar) e a personalização opcional.
 
-## 3. Fora de escopo
-- QR dinâmico, encurtador ou redirecionador (exige servidor e cria dependência).
-- Estatísticas de leitura (exige rastrear quem lê).
-- Contas, login ou histórico na nuvem.
-- Anúncios ou paywall.
-- API ou geração em lote no servidor.
-
-## 4. Cenários de uso
+## 3. Cenários de uso
 - Estou montando a recepção do escritório, quero um QR do Wi-Fi e **não quero digitar a senha num site qualquer**; espero gerar no navegador e imprimir.
 - Tenho um pequeno negócio e quero um QR do WhatsApp com a cor e o logo da marca; espero baixar um PNG grande e um SVG para a gráfica, sem pagar.
 - Recebi um print com um QR de Pix; quero **conferir o recebedor e o valor antes de pagar**.
 - Estou sem sinal num evento e preciso ler um código; espero que o app instalado funcione offline.
 
-## 5. Requisitos funcionais
+## 4. Requisitos funcionais
 | ID | Requisito | Prioridade |
 |---|---|---|
 | APP-F01 | Gerar QR Code a partir de vários tipos de conteúdo ([PRD-001](001-geracao.md)) | Must |
@@ -49,7 +42,7 @@ Quem precisa gerar ou ler um QR Code costuma cair em ferramentas que:
 | APP-F06 | Explicar à pessoa quais dados saem do dispositivo ([PRD-006](006-privacidade.md)) | Must |
 | APP-F07 | Aba "Sobre" com créditos das bibliotecas, formatos suportados e link para o repositório | Could |
 
-## 6. Requisitos não funcionais
+## 5. Requisitos não funcionais
 | ID | Requisito |
 |---|---|
 | APP-N01 | Local-first: nenhum conteúdo gerado ou lido é enviado a servidores. |
@@ -61,15 +54,15 @@ Quem precisa gerar ou ler um QR Code costuma cair em ferramentas que:
 | APP-N07 | Hospedagem apenas estática; sem código de servidor. |
 | APP-N08 | Todo PR para `main` passa typecheck, testes e build no CI. |
 
-## 7. Configurações
+## 6. Configurações
 Não há configurações globais. O único dado persistido é `installDismissed` ([PRD-005](005-pwa-offline.md)).
 
-## 8. Critérios de aceite
+## 7. Critérios de aceite
 - [ ] O `dist/index.html` não contém `<script src>` nem `<link rel="stylesheet">` externos.
 - [ ] Com a aba Rede do DevTools aberta, gerar e ler um QR não faz nenhuma requisição fora da origem.
 - [ ] Após a primeira visita, com a rede desligada, o app abre, gera e lê.
 - [ ] O CI (typecheck, testes, build) está verde em `main`.
 
-## 9. Questões em aberto
+## 8. Questões em aberto
 - **Como medir sucesso sem rastrear?** Provisório: Google Search Console, Bing Webmaster, métricas agregadas da Cloudflare e estrelas/issues no GitHub.
 - **Visibilidade na busca:** o site só aparece em buscas pela marca. Será tratado num PRD próprio de SEO.

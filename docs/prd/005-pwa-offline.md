@@ -16,17 +16,12 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 - Integrar com o sistema: atalhos, abrir imagens com o app e receber imagens compartilhadas.
 - Atualizar sozinho a cada release, sem servir versão velha.
 
-## 3. Fora de escopo
-- Publicar nas lojas (Play Store/App Store).
-- Notificações push.
-- Sincronização em segundo plano.
-
-## 4. Cenários de uso
+## 3. Cenários de uso
 - Uso o app com frequência e quero abrir direto na tela de leitura: seguro o ícone e toco no atalho "Ler".
 - Recebi uma foto com QR na galeria: toco em Compartilhar → QR Utils e o app já mostra o conteúdo.
 - Estou num lugar sem sinal e preciso gerar o QR do Wi-Fi: o app instalado funciona.
 
-## 5. Requisitos funcionais
+## 4. Requisitos funcionais
 | ID | Requisito | Prioridade |
 |---|---|---|
 | PWA-F01 | Manifesto com nome, ícones (incluindo maskable), screenshots e `display: standalone` | Must |
@@ -38,7 +33,7 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 | PWA-F07 | Receber imagens compartilhadas por outros apps (`share_target`) e ler o código | Should |
 | PWA-F08 | Service worker com cache offline do app e do `.wasm` | Must |
 
-## 6. Requisitos não funcionais
+## 5. Requisitos não funcionais
 | ID | Requisito |
 |---|---|
 | PWA-N01 | Com o app instalado e sem rede, gerar e ler funcionam. |
@@ -47,13 +42,13 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 | PWA-N04 | O único dado persistido é a preferência `installDismissed`. |
 | PWA-N05 | Exige HTTPS (ou `localhost`). |
 
-## 7. Configurações
+## 6. Configurações
 | Configuração | Padrão | Faixa |
 |---|---|---|
 | `installDismissed` (`localStorage`) | ausente | `'1'` após dispensar |
 | Versão do cache | versão do build | `qr-utils-<versão>` |
 
-## 8. Critérios de aceite
+## 7. Critérios de aceite
 - [ ] O Lighthouse reconhece o app como instalável.
 - [ ] Após instalar e desligar a rede, o app abre, gera um QR e lê um código de barras por imagem.
 - [ ] O atalho "Ler" abre direto na aba Ler.
@@ -61,6 +56,6 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 - [ ] Após um deploy, recarregar o app mostra a nova versão.
 - [ ] Após dispensar a barra, ela não volta em novas visitas.
 
-## 9. Questões em aberto
+## 8. Questões em aberto
 - **Aviso de "nova versão disponível"?** Provisório: não; o HTML é revalidado a cada navegação.
 - **Ícone `apple-touch-icon` em SVG:** o iOS não usa SVG para esse ícone. Provisório: manter; avaliar um PNG 180 px.
