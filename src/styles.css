@@ -377,6 +377,8 @@
 
   /* Páginas de tipo / leitor / privacidade */
   .page{max-width:760px;margin:0 auto}
+  /* Leitor (/ler/): mesma largura da home (a do <main>). */
+  .page-wide{max-width:none}
   .crumbs{font-size:13px;color:var(--muted);padding:14px 0 6px}
   .crumbs a{color:var(--muted)}
   .page-head{display:flex;gap:14px;align-items:flex-start;margin:6px 0 22px}

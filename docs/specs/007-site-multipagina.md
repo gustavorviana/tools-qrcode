@@ -100,6 +100,7 @@ No `App` (`src/app.ts`):
   - divisor `<details class="more-types">` ("——— Mais tipos ⌄ ———") que expande os cards dos demais tipos. Os links ficam no HTML mesmo com ele fechado, e ele funciona sem JS;
   - "Como funciona" (`.how-steps`);
   - "Sobre" (`.pillars` + cards de privacidade, instalar, créditos, projeto).
+- **Leitor (`/ler/`):** mesma largura da home (`.page.page-wide`, a do `<main>`); as páginas de tipo usam a coluna de 760 px.
 - **Página de tipo:** breadcrumb, `.page-head` (ícone + H1 + lead), etapas 1/2/3 como antes, "Como fazer", FAQ (`<details class="faq">`) e o link "← Voltar ao início". Não lista outros tipos.
 - **Rodapé:** links para todas as páginas de tipo e para o leitor, privacidade e código aberto.
 
