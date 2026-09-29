@@ -53,9 +53,10 @@ Não há banco nem back-end. O estado vive em memória na instância `App`. O qu
 **CI** (PR para `main`): `npm ci` → `typecheck` → `test` → `build`.
 
 **Release** (PR mesclado em `main` ou disparo manual)
-1. Job `bump`: lê a última tag `vX.Y.Z` e os commits desde ela. `BREAKING CHANGE` ou `!` gera major, `feat` gera minor e o resto gera patch. Sem tag, usa a versão do `package.json`.
-2. Job `deploy`: `npm run build` com `NEW_VERSION`, depois `wrangler deploy --name=$CF_PROJECT --assets=dist`.
-3. Cria e envia a tag `v<NEW_VERSION>`.
+1. Job `test` (em paralelo ao `bump`): na `main`, `npm ci` → `typecheck` → `test`. Se falhar, o `deploy` não roda: nada é publicado e nenhuma tag é criada.
+2. Job `bump`: lê a última tag `vX.Y.Z` e os commits desde ela. `BREAKING CHANGE` ou `!` gera major, `feat` gera minor e o resto gera patch. Sem tag, usa a versão do `package.json`.
+3. Job `deploy` (`needs: [bump, test]`): `npm run build` com `NEW_VERSION`, depois `wrangler deploy --name=$CF_PROJECT --assets=dist`.
+4. Cria e envia a tag `v<NEW_VERSION>`.
 
 ## 6. UI
 Páginas estáticas, identificadas por `<body data-page>` ([SPEC-007](007-site-multipagina.md)):
