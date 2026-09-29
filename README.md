@@ -2,7 +2,7 @@
 
 > **Gere e leia QR Codes sem que nada saia do seu navegador.**
 
-Webapp (PWA) para gerar e ler **QR Codes** com **processamento 100% local**: nenhum dado é enviado a servidores, não há rastreadores nem cadastro. O código é aberto e o build empacota tudo num **único `index.html` self-contained** — em runtime não há CDN nem dependências externas. Funciona **offline** após o primeiro acesso.
+Webapp (PWA) para gerar e ler **QR Codes** com **processamento 100% local**: nenhum dado é enviado a servidores, não há rastreadores nem cadastro. O código é aberto e o site é **estático e servido inteiramente pela própria origem** — uma página por tipo de QR, mais um `app.js` e um `app.css` compartilhados; em runtime não há CDN nem dependências externas. Funciona **offline** após o primeiro acesso.
 
 A **única exceção** é o **mapa opcional** do tipo *Localização*: só **depois de você autorizar** ("Escolher no mapa"), ele usa o **OpenStreetMap** para carregar as imagens do mapa e, ao buscar por endereço, envia o texto digitado ao geocodificador (Nominatim). Todo o resto — inclusive gerar/ler QR Codes e a opção "usar localização atual" — continua no seu dispositivo.
 
@@ -23,7 +23,8 @@ Requer [Node.js](https://nodejs.org/). Na pasta do projeto:
 
 ```bash
 npm install          # instala as dependências (jsQR + esbuild + typescript)
-npm run build        # gera dist/index.html self-contained
+npm run build        # gera o site estático em dist/ (uma página por tipo + app.js/app.css)
+npm test             # testes (vitest)
 npm run typecheck    # checagem de tipos (tsc --noEmit)
 npm run preview      # build + servidor local em dist/ (localhost:5000)
 npm run preview:online  # build + servidor + túnel HTTPS (testar no celular)
@@ -40,7 +41,11 @@ O código é **TypeScript** com organização orientada a objetos:
 
 ```
 src/
-  index.html      Template HTML (marcadores para CSS e JS)
+  templates/      HTML: layout, páginas, partials e campos por tipo
+  site/
+    catalog.ts    Catálogo de tipos e páginas (textos, SEO, cards)
+    render.ts     Renderização pura das páginas e do sitemap (usada no build)
+    icons.ts      Ícones dos tipos (cards da home e páginas)
   styles.css      Estilos
   main.ts         Ponto de entrada (instancia a App)
   app.ts          Classe App — controlador da interface
@@ -50,7 +55,7 @@ src/
                   logo, moldura, render SVG e exportação (PNG/SVG)
     reader.ts     Classe QRReader — leitura (BarcodeDetector + jsQR)
 public/           Assets copiados para o build (sw.js, manifest, ícones)
-build.mjs         Bundla/minifica e inlina tudo num único dist/index.html
+build.mjs         Gera dist/: app.js, app.css, uma página HTML por entrada do catálogo e sitemap.xml
 tsconfig.json     Configuração do TypeScript (usada por `npm run typecheck`)
 dist/             Saída do build (gerada; publicada no deploy)
 ```
@@ -69,7 +74,7 @@ O app está publicado em **[qr.tools.grviana.com.br](https://qr.tools.grviana.co
 - **Geração + personalização** (`QRDesigner`, `src/qr/designer.ts`): envelopa a [`qr-code-styling`](https://github.com/kozakdenys/qr-code-styling) (MIT), que codifica e desenha o código (formas contínuo/arredondado/pontos/elegante, cores, logo central). Sobre o SVG da lib, o `QRDesigner` compõe a **moldura própria** (cantos/borda/faixa + legenda) via `applyExtension`, produzindo o **SVG final** (vetorial) e exportando para PNG/SVG.
 - **Leitura** (`QRReader`, `src/qr/reader.ts`): usa a API nativa [`BarcodeDetector`](https://developer.mozilla.org/docs/Web/API/BarcodeDetector) quando disponível (rápida, em Android/macOS) e cai automaticamente para o [`jsQR`](https://github.com/cozmo/jsQR) (MIT) — JavaScript puro que funciona em qualquer navegador, inclusive Chrome/Edge/Firefox no Windows desktop, onde o `BarcodeDetector` não existe.
 - **Mapa** (`App`, `src/app.ts`): seletor de localização implementado **do zero** (projeção Web Mercator, arrastar e zoom), **sem biblioteca de mapas**. Apenas as imagens dos tiles vêm do [OpenStreetMap](https://www.openstreetmap.org/) e a busca de endereço usa o [Nominatim](https://nominatim.org/) — ambos só após o usuário abrir o mapa. Nenhum script de terceiros é carregado.
-- **Build** (`build.mjs`): o [esbuild](https://esbuild.github.io/) transpila e empacota o TypeScript (`src/main.ts`, com o jsQR) e o CSS, minifica e inlina tudo no template, produzindo um `dist/index.html` self-contained — nenhum arquivo JS externo é carregado em runtime.
+- **Build** (`build.mjs`): o [esbuild](https://esbuild.github.io/) empacota e minifica o TypeScript (`src/main.ts`) em `dist/app.js` e o CSS em `dist/app.css`; o catálogo (`src/site/catalog.ts`) e os templates (`src/templates/`) viram uma página HTML estática por tipo de QR, mais o `sitemap.xml`. Nenhum arquivo é carregado de outra origem em runtime.
 
 ## Compatibilidade
 

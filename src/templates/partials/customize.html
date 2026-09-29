@@ -1,0 +1,137 @@
+<!-- ===== Passo 2 — Personalizar (sanfona, fechada por padrão) ===== -->
+<details class="card step accordion">
+  <summary class="step-head"><span class="step-num">2</span> Personalizar <span class="step-opt">(opcional)</span><span class="acc-chevron" aria-hidden="true">⌄</span></summary>
+  <div class="ctabs" id="custTabs">
+    <button class="ctab active" data-ctab="color" onclick="setCustomTab('color')">🎨 Cor</button>
+    <button class="ctab" data-ctab="shape" onclick="setCustomTab('shape')">◼️ Formas</button>
+    <button class="ctab" data-ctab="logo" onclick="setCustomTab('logo')">🖼️ Logo</button>
+    <button class="ctab" data-ctab="frame" onclick="setCustomTab('frame')">🔲 Moldura</button>
+    <button class="ctab" data-ctab="adv" onclick="setCustomTab('adv')">⚙️ Avançado</button>
+  </div>
+
+  <!-- Cor -->
+  <div class="cpanel" data-panel="color">
+    <div class="row">
+      <div>
+        <label class="fld" for="c_fg">Cor dos módulos</label>
+        <div class="color-field">
+          <input type="color" id="c_fg" value="#0f172a" oninput="setColor('fg', this.value)">
+          <input type="text" class="hex" id="c_fg_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setHex('fg', this.value)">
+        </div>
+      </div>
+      <div>
+        <label class="fld" for="c_bg">Fundo</label>
+        <div class="color-field">
+          <input type="color" id="c_bg" value="#ffffff" oninput="setColor('bg', this.value)">
+          <input type="text" class="hex" id="c_bg_hex" value="#ffffff" spellcheck="false" maxlength="7" oninput="setHex('bg', this.value)">
+        </div>
+      </div>
+    </div>
+    <label class="check" style="margin-top:10px">
+      <input type="checkbox" id="bgTransp" onchange="setBgTransparent(this.checked)"> Fundo transparente
+    </label>
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label class="fld" for="c_ef">Moldura do olho</label>
+        <div class="color-field">
+          <input type="color" id="c_ef" value="#0f172a" oninput="setEyeColor('frame', this.value)">
+          <input type="text" class="hex" id="c_ef_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setEyeHex('frame', this.value)">
+        </div>
+      </div>
+      <div>
+        <label class="fld" for="c_ec">Centro do olho</label>
+        <div class="color-field">
+          <input type="color" id="c_ec" value="#0f172a" oninput="setEyeColor('center', this.value)">
+          <input type="text" class="hex" id="c_ec_hex" value="#0f172a" spellcheck="false" maxlength="7" oninput="setEyeHex('center', this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="swatches" id="colorPresets">
+      <button class="swatch" style="--a:#0f172a;--b:#ffffff" title="Clássico" onclick="applyPreset('#0f172a','#ffffff')"></button>
+      <button class="swatch" style="--a:#1d4ed8;--b:#ffffff" title="Azul" onclick="applyPreset('#1d4ed8','#ffffff')"></button>
+      <button class="swatch" style="--a:#059669;--b:#ffffff" title="Verde" onclick="applyPreset('#059669','#ffffff')"></button>
+      <button class="swatch" style="--a:#7c3aed;--b:#ffffff" title="Roxo" onclick="applyPreset('#7c3aed','#ffffff')"></button>
+      <button class="swatch" style="--a:#db2777;--b:#ffffff" title="Rosa" onclick="applyPreset('#db2777','#ffffff')"></button>
+      <button class="swatch" style="--a:#ffffff;--b:#0f172a" title="Invertido" onclick="applyPreset('#ffffff','#0f172a')"></button>
+    </div>
+  </div>
+
+  <!-- Formas -->
+  <div class="cpanel" data-panel="shape" hidden>
+    <label class="fld">Corpo</label>
+    <!-- Botões gerados de ./qr/shapes (registro BODY) em buildShapeControls(). -->
+    <div class="opts" id="shapeOpts"></div>
+
+    <label class="fld" style="margin-top:12px">Moldura do olho</label>
+    <div class="opts" id="eyeFrameOpts"></div>
+
+    <label class="fld" style="margin-top:12px">Centro do olho</label>
+    <div class="opts" id="eyeCenterOpts"></div>
+    <p class="hint" style="margin-top:6px">“Automático” combina com o corpo. Centros em forma de ícone (coração, estrela, losango…) desenham os módulos isolados, mesmo com um corpo conectado.</p>
+
+    <label class="fld" style="margin-top:12px">Contorno</label>
+    <div class="opts" id="qrShapeOpts">
+      <button class="opt active" data-qrshape="square" onclick="setQrShape('square')">
+        <svg class="frame-ex" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" fill="#cbd5e1"/></svg>
+        Quadrado
+      </button>
+      <button class="opt" data-qrshape="circle" onclick="setQrShape('circle')">
+        <svg class="frame-ex" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#cbd5e1"/></svg>
+        Círculo
+      </button>
+    </div>
+  </div>
+
+  <!-- Logo -->
+  <div class="cpanel" data-panel="logo" hidden>
+    <label class="fld">Logos prontos</label>
+    <label class="check" style="margin:0 0 10px"><input type="checkbox" id="logoMono" checked onchange="setLogoMono(this.checked)"> Monocromático (usa as cores do QR)</label>
+    <!-- Galeria gerada de ./qr/logos (registro LOGOS) em buildLogoControls(). -->
+    <div class="logos" id="logoPresets"></div>
+    <p class="hint" style="margin-top:12px">Ou envie a sua imagem (quadrada; PNG com fundo transparente fica melhor). Um logo cobre parte do QR — mantenha a correção de erro alta.</p>
+    <div class="grid2">
+      <button class="btn ghost" onclick="document.getElementById('logoInput').click()">Escolher imagem</button>
+      <button class="btn ghost" id="logoRemove" hidden onclick="removeLogo()">Remover logo</button>
+    </div>
+    <input type="file" id="logoInput" accept="image/*" hidden onchange="onLogo(event)">
+  </div>
+
+  <!-- Moldura -->
+  <div class="cpanel" data-panel="frame" hidden>
+    <div class="opts" id="frameOpts">
+      <button class="opt active" data-frame="none" onclick="setFrame('none')">
+        <svg class="frame-ex" viewBox="0 0 24 28"><rect x="4" y="4" width="16" height="16" rx="2" fill="#cbd5e1"/></svg>
+        Nenhuma
+      </button>
+      <button class="opt" data-frame="corners" onclick="setFrame('corners')">
+        <svg class="frame-ex" viewBox="0 0 24 28"><rect x="6" y="5" width="12" height="12" rx="1" fill="#cbd5e1"/><path d="M3 8 L3 4 L7 4 M17 4 L21 4 L21 8 M3 16 L3 20 L7 20 M17 20 L21 20 L21 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="8" y="23" width="8" height="2" rx="1" fill="currentColor"/></svg>
+        Cantos + legenda
+      </button>
+      <button class="opt" data-frame="border" onclick="setFrame('border')">
+        <svg class="frame-ex" viewBox="0 0 24 28"><rect x="2" y="2" width="20" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="6" y="5" width="12" height="12" rx="1.5" fill="#cbd5e1"/><rect x="8" y="20.5" width="8" height="2" rx="1" fill="currentColor"/></svg>
+        Borda + legenda
+      </button>
+      <button class="opt" data-frame="label" onclick="setFrame('label')">
+        <svg class="frame-ex" viewBox="0 0 24 28"><rect x="4" y="3" width="16" height="15" rx="2" fill="#cbd5e1"/><rect x="3" y="20.5" width="18" height="5.5" rx="2" fill="currentColor"/><rect x="8" y="22.7" width="8" height="1.4" rx="0.7" fill="#fff"/></svg>
+        Faixa + legenda
+      </button>
+    </div>
+    <div id="capRow" hidden style="margin-top:12px">
+      <label class="fld" for="c_caption">Legenda</label>
+      <input type="text" id="c_caption" value="ESCANEIE" maxlength="45" oninput="setCaption(this.value)">
+    </div>
+  </div>
+
+  <!-- Avançado -->
+  <div class="cpanel" data-panel="adv" hidden>
+    <label class="fld" for="genEcl">Correção de erro</label>
+    <select id="genEcl" onchange="onEclChange()">
+      <option value="AUTO" selected>Automático</option>
+      <option value="LOW">Baixa (mais dados)</option>
+      <option value="MEDIUM">Média</option>
+      <option value="QUARTILE">Alta</option>
+      <option value="HIGH">Máxima (mais robusto)</option>
+    </select>
+    <p class="hint" style="margin-top:8px">No modo automático, a correção sobe sozinha com logo ou formas de ícone, para manter a leitura.</p>
+  </div>
+</details>

@@ -4,20 +4,20 @@
 |---|---|
 | **Status** | Implementado |
 | **PRD** | [PRD-006](../prd/006-privacidade.md) |
-| **Módulos** | `src/index.html` (`#view-privacy`, `#view-about`, `footer`), `src/app.ts`, `build.mjs` |
+| **Módulos** | `src/templates/partials/privacy.html`, `src/templates/partials/about.html`, `src/templates/layout.html`, `src/app.ts`, `build.mjs` |
 | **Atualizado em** | 2026-09-29 |
 
 ## 1. Resumo
 A privacidade é garantida pela arquitetura, não por política:
 - não há back-end;
-- o build embute JS e CSS;
+- JS e CSS são servidos pela própria origem;
 - as dependências de runtime são servidas pela própria origem;
 - a única chamada externa (OSM) só acontece após um clique explícito.
 
 A página Privacidade descreve esses fluxos e deve ser atualizada junto com eles.
 
 ## 2. Módulos e dependências
-- `src/index.html`: textos de `#view-privacy`, `#view-about` e do rodapé.
+- `src/templates/`: textos da página `/privacidade/`, da seção Sobre e do rodapé.
 - `src/app.ts`: consentimento do mapa (`loadMap`), aviso do Pix (`renderDecoded`), aviso do logo no link (`#shareLinkNote`).
 - `build.mjs`: garante o HTML autocontido (SPEC-000).
 - `src/qr/barcode.ts`: `locateFile` aponta o `.wasm` para a própria origem.
@@ -38,7 +38,7 @@ A página Privacidade descreve esses fluxos e deve ser atualizada junto com eles
 
 ## 4. Componentes
 Não há componente dedicado. As garantias vêm de:
-- `build.mjs`: inline de JS e CSS;
+- `build.mjs`: JS e CSS em arquivos da própria origem, sem CDN;
 - `configureBarcodeReader` / `locateFile`: WASM local;
 - `App.loadMap()`: único ponto que cria requisições ao OSM, chamado só pelo botão.
 
@@ -74,7 +74,7 @@ Não há teste automatizado de rede.
 | DevTools → Rede num ciclo completo | PRV-N01, PRV-N02 |
 | abrir o tipo Local sem mapa | PRV-F03 |
 | Application → Cookies / Local Storage | PRV-N02 |
-| `grep '<script src' dist/index.html` vazio | PRV-N02, PRV-N04 |
+| `site.test.ts` › nenhum script/estilo de outra origem | PRV-N02, PRV-N04 |
 
 ## 10. Plano de implementação
 Concluído. Marcos: `e58efef` (processamento local e página Privacidade), `87b43c4` (créditos e formatos na aba Sobre), `b4f9c81` (aviso no Pix).

@@ -1,0 +1,19 @@
+<div class="page page-wide">
+  <nav class="crumbs" aria-label="Você está em"><a href="/">Início</a> <span aria-hidden="true">›</span> <span>{{label}}</span></nav>
+  <div class="page-head">
+    <span class="page-ico" aria-hidden="true">{{{icon}}}</span>
+    <div>
+      <h1>{{h1}}</h1>
+      <p class="lead">{{intro}}</p>
+    </div>
+  </div>
+
+  <!-- Mesma estrutura das páginas de gerador: bloco principal com o respiro de
+       .gen, depois FAQ e, por último, "Voltar ao início". -->
+  <section class="gen" aria-label="Leitor">
+<!--@include reader-->
+<!--@include formats-->
+  </section>
+
+{{{guide}}}
+</div>

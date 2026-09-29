@@ -1,0 +1,39 @@
+<div class="page">
+  <nav class="crumbs" aria-label="Você está em"><a href="/">Início</a> <span aria-hidden="true">›</span> <span>{{label}}</span></nav>
+  <div class="page-head">
+    <span class="page-ico" aria-hidden="true">{{{icon}}}</span>
+    <div>
+      <h1>{{h1}}</h1>
+      <p class="lead">{{intro}}</p>
+    </div>
+  </div>
+
+  <section class="gen" aria-label="Gerador">
+    <div class="card step" id="genContent">
+      <div class="step-head"><span class="step-num">1</span> Conteúdo</div>
+      <div id="genFields" style="margin-top:14px">
+{{{fields}}}
+      </div>
+
+      <div style="margin-top:14px" class="grid2">
+        <button class="btn ghost" onclick="showFormatted()">Ver texto formatado</button>
+        <button class="btn" onclick="doGenerate()">Gerar QR Code</button>
+      </div>
+      <div id="genPreview" class="preview" hidden>
+        <span class="preview-label">Texto que será codificado</span>
+        <code id="genPreviewText"></code>
+      </div>
+      <div id="genErr" class="err"></div>
+    </div>
+
+    <!-- Etapas 2 e 3: aparecem só após "Gerar"; mudanças de personalização
+         redesenham o QR ao vivo (sem precisar clicar de novo). -->
+    <div id="genResult" hidden>
+      <button class="btn ghost gen-back" onclick="backToContent()">← Voltar e editar conteúdo</button>
+<!--@include customize-->
+<!--@include download-->
+    </div>
+  </section>
+
+{{{guide}}}
+</div>

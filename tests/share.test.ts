@@ -136,3 +136,38 @@ describe('parseShareQuery', () => {
     expect(SHARE_DEFAULTS).toMatchObject({ ecl: 'MEDIUM', fg: '#0f172a', bg: '#ffffff', shape: 'solid', qrShape: 'square', frame: 'none', caption: 'ESCANEIE' });
   });
 });
+
+describe('logo pronto no link', () => {
+  const base = {
+    text: 'https://exemplo.com', ecl: 'HIGH' as const, fg: '#0f172a', bg: '#ffffff',
+    bgTransparent: false, shape: 'solid' as const, eyeFrame: 'auto' as const, eyeCenter: 'auto' as const,
+    qrShape: 'square' as const, frame: 'none' as const, caption: 'ESCANEIE', size: 1024,
+  };
+
+  it('logo pronto entra pelo nome; mono (padrão) não adiciona lc', () => {
+    const q = new URLSearchParams(buildShareQuery({ ...base, logo: 'whatsapp', logoMono: true }));
+    expect(q.get('lg')).toBe('whatsapp');
+    expect(q.has('lc')).toBe(false);
+  });
+
+  it('logo colorido adiciona lc=1', () => {
+    const q = new URLSearchParams(buildShareQuery({ ...base, logo: 'instagram', logoMono: false }));
+    expect(q.get('lg')).toBe('instagram');
+    expect(q.get('lc')).toBe('1');
+  });
+
+  it('sem logo pronto (nenhum ou imagem própria) não entra nada', () => {
+    const q = new URLSearchParams(buildShareQuery({ ...base, logo: null }));
+    expect(q.has('lg')).toBe(false);
+    expect(new URLSearchParams(buildShareQuery({ ...base, logo: 'nao-existe' })).has('lg')).toBe(false);
+  });
+
+  it('round-trip e validação do nome', () => {
+    const sp = parseShareQuery(buildShareQuery({ ...base, logo: 'tel', logoMono: false }))!;
+    expect(sp.logo).toBe('tel');
+    expect(sp.logoMono).toBe(false);
+    expect(parseShareQuery('q=x&lg=tel')!.logoMono).toBe(true);
+    expect(parseShareQuery('q=x&lg=<script>')!.logo).toBeUndefined();
+    expect(parseShareQuery('q=x')!.logoMono).toBeUndefined();
+  });
+});

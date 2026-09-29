@@ -1,7 +1,8 @@
 /*
- * App — Controlador da interface. Orquestra os campos, a personalização e a
- * leitura, delegando ao QREncoder (geração), QRDesigner (render/estilo) e
- * QRReader (decodificação).
+ * App — Controlador da interface. O site tem várias páginas estáticas (home,
+ * uma por tipo de QR, leitor, privacidade) que compartilham este mesmo bundle;
+ * a página atual vem de `<body data-page data-type>` e `init()` só liga o que
+ * existe nela. Delega ao QRDesigner (geração/estilo) e ao QRReader (leitura).
  */
 import { QRDesigner } from './qr/designer';
 import { QRReader } from './qr/reader';
@@ -18,6 +19,7 @@ import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
 import { SHARE_DEFAULTS, PNG_SIZES, buildShareQuery, parseShareQuery } from './qr/share';
 import type { ShareParams } from './qr/share';
+import { setupViana, bindVianaBack } from './viana';
 
 /* ---------- Helpers de DOM ---------- */
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
@@ -280,31 +282,17 @@ export class App {
   private mapBound = false;
   private deferredPrompt: { prompt(): void; userChoice: Promise<{ outcome: string }> } | null = null;
 
-  /* ---------- Navegação ---------- */
-  showView(v: string): void {
-    ['gen', 'read', 'about', 'privacy', 'share'].forEach((name) => {
-      $('view-' + name).classList.toggle('active', v === name);
-    });
-    (document.querySelector('.tabs') as HTMLElement).hidden = false;
-    $('tabGen').classList.toggle('active', v === 'gen');
-    $('tabRead').classList.toggle('active', v === 'read');
-    $('tabAbout').classList.toggle('active', v === 'about');
-    if (v !== 'read') this.stopCamera();
-    const m = document.querySelector('main');
-    if (m) m.scrollTop = 0;
-  }
+  /* ---------- Página ---------- */
+  /** Aberto dentro do app Viana Utils (`window.VianaApp`)? Ver ./viana. */
+  private inViana = false;
 
-  setType(t: string): void {
-    this.currentType = t;
-    document.querySelectorAll('#typeChips .type-tab').forEach((c) =>
-      c.classList.toggle('active', (c as HTMLElement).dataset.type === t));
-    document.querySelectorAll('.fgroup').forEach((g) => {
-      (g as HTMLElement).hidden = (g as HTMLElement).dataset.fields !== t;
-    });
-    $('genPreview').hidden = true;
-    $('genErr').textContent = '';
-    // Troca de tipo não gera QR — apenas limpa a prévia anterior.
-    $('step3').hidden = true;
+  /** Página atual (`home`, `gen`, `read`, `privacy`), definida no HTML gerado. */
+  private readonly page = document.body.dataset.page ?? 'home';
+
+  /** Leva a visão até o topo de um elemento (a página rola normalmente). */
+  private scrollToEl(id: string): void {
+    const el = document.getElementById(id);
+    if (el) window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 12) });
   }
 
   toggleWifiPass(): void {
@@ -451,8 +439,9 @@ export class App {
     this.lastSVG = svg;
     $('qrPreview').innerHTML = svg;
     $('step3').hidden = false;
-    // Aviso de que o logo não é embutido no link compartilhado (só na imagem).
-    $('shareLinkNote').hidden = !this.designer.hasLogo;
+    // Aviso de que uma imagem própria de logo não vai no link (só na imagem).
+    // Só uma imagem própria fica fora do link; logos prontos vão pelo nome.
+    $('shareLinkNote').hidden = !(this.designer.hasLogo && !this.logoName);
     const { moduleCount, version, ecl } = this.designer.info;
     $('qrMeta').textContent =
       `Versão ${version} · correção ${ECL_LETTER[ecl]} · ${moduleCount}×${moduleCount} módulos`;
@@ -493,8 +482,7 @@ export class App {
       this.live = true;
       $('genContent').hidden = true;
       $('genResult').hidden = false;
-      const m = document.querySelector('main');
-      if (m) m.scrollTop = 0;
+      this.scrollToEl('genResult');
     } else if (!$('genErr').textContent) {
       $('genErr').textContent = 'Preencha os campos primeiro.';
     }
@@ -506,8 +494,7 @@ export class App {
     clearTimeout(this.liveTimer);
     $('genResult').hidden = true;
     $('genContent').hidden = false;
-    const m = document.querySelector('main');
-    if (m) m.scrollTop = 0;
+    this.scrollToEl('genContent');
   }
 
   /**
@@ -824,8 +811,8 @@ export class App {
   /* ---------- Link compartilhável ---------- */
   /**
    * Link compartilhável: `#q=<texto>` mais as opções que fogem do padrão
-   * (correção de erro + personalização). O logo não entra — é uma imagem e
-   * inflaria demais a URL.
+   * (correção de erro + personalização). Um logo pronto entra pelo nome; uma
+   * imagem própria não entra — inflaria demais a URL.
    */
   private buildShareURL(text: string): string {
     const { fg, bg, eyeFrame, eyeCenter } = this.designer.colors;
@@ -837,8 +824,10 @@ export class App {
       eyeFrame: this.designer.eyeFrameShape, eyeCenter: this.designer.eyeCenterShape,
       qrShape: this.designer.qrShape,
       frame: this.frameStyle, caption: this.caption, size: this.exportPx,
+      logo: this.designer.hasLogo ? this.logoName : null, logoMono: this.logoMono,
     });
-    return location.origin + location.pathname + '#' + q;
+    // A home é quem abre links compartilhados, qualquer que seja a página de origem.
+    return location.origin + '/#' + q;
   }
 
   async shareLink(): Promise<void> {
@@ -878,6 +867,11 @@ export class App {
     this.caption = sp.caption ?? SHARE_DEFAULTS.caption;
     this.designer.frame = createFrame(this.frameStyle, this.caption);
     this.setPngSize(sp.size ?? SHARE_DEFAULTS.size);
+    // Logo pronto do link (depois das cores: o modo mono usa fg/bg do QR).
+    this.logoName = sp.logo ?? null;
+    this.logoMono = sp.logoMono ?? true;
+    this.designer.logo = null;
+    this.applyLogo();
     let svg: string;
     try { svg = await this.designer.toSVG(); }
     catch { return; } // conteúdo inválido/grande demais → segue app normal
@@ -887,12 +881,14 @@ export class App {
     $('sharePreview').innerHTML = svg;
     renderDecoded($('shareDetail'), text);
 
-    (document.querySelector('.tabs') as HTMLElement).hidden = true;
-    document.querySelectorAll('.tabs button').forEach((b) => b.classList.remove('active'));
-    ['gen', 'read', 'about', 'privacy'].forEach((n) => $('view-' + n).classList.remove('active'));
-    $('view-share').classList.add('active');
-    const m = document.querySelector('main');
-    if (m) m.scrollTop = 0;
+    this.toggleShareView(true);
+    window.scrollTo({ top: 0 });
+  }
+
+  /** Alterna a home entre o conteúdo normal e a visualização de link compartilhado. */
+  private toggleShareView(on: boolean): void {
+    $('homeMain').hidden = on;
+    $('view-share').classList.toggle('active', on);
   }
 
   private initShared(): void {
@@ -901,45 +897,9 @@ export class App {
     if (sp) void this.renderShared(sp);
   }
 
+  /** Sai do link compartilhado: volta à home limpa (sem o `#q=…`). */
   exitShared(): void {
-    history.replaceState(null, '', location.pathname);
-    $('view-share').classList.remove('active');
-    (document.querySelector('.tabs') as HTMLElement).hidden = false;
-    document.querySelectorAll('#view-gen input[type="text"], #view-gen textarea')
-      .forEach((e) => { (e as HTMLInputElement).value = ''; });
-    $i('f_hidden').checked = false;
-    $('step3').hidden = true;
-    this.live = false;
-    $('genResult').hidden = true;
-    $('genContent').hidden = false;
-    this.resetCustomization();
-    this.setType('text');
-    this.showView('gen');
-  }
-
-  /**
-   * Restaura a personalização (designer + controles) ao padrão. Usado ao sair de
-   * um link compartilhado, para não vazar as opções do link para um novo QR.
-   */
-  private resetCustomization(): void {
-    this.setColor('fg', SHARE_DEFAULTS.fg);
-    this.setColor('bg', SHARE_DEFAULTS.bg);
-    // Zera as sobrescritas de cor do olho (voltam a herdar `fg`).
-    this.designer.colors = { eyeFrame: undefined, eyeCenter: undefined };
-    $i('c_ef').value = SHARE_DEFAULTS.fg; $i('c_ef_hex').value = SHARE_DEFAULTS.fg;
-    $i('c_ec').value = SHARE_DEFAULTS.fg; $i('c_ec_hex').value = SHARE_DEFAULTS.fg;
-    this.setBgTransparent(SHARE_DEFAULTS.bgTransparent);
-    this.setShape(SHARE_DEFAULTS.shape);
-    this.setEyeFrameShape(SHARE_DEFAULTS.eyeFrame);
-    this.setEyeCenterShape(SHARE_DEFAULTS.eyeCenter);
-    this.setQrShape(SHARE_DEFAULTS.qrShape);
-    this.setFrame(SHARE_DEFAULTS.frame);
-    this.setCaption(SHARE_DEFAULTS.caption);
-    $i('c_caption').value = SHARE_DEFAULTS.caption;
-    this.setPngSize(SHARE_DEFAULTS.size);
-    this.removeLogo();
-    this.setLogoMono(true); // monocromático é o padrão
-    $i('genEcl').value = 'AUTO';
+    location.assign('/');
   }
 
   /* ---------- Leitura ---------- */
@@ -1156,7 +1116,8 @@ export class App {
 
   /* ---------- Instalação (PWA) ---------- */
   private showInstall(mode: 'ios' | 'android'): void {
-    if (isStandalone()) return;
+    // Dentro do Viana Utils não existe "instalar"; o banner nunca aparece.
+    if (isStandalone() || this.inViana) return;
     try { if (localStorage.getItem('installDismissed')) return; } catch { /* ignore */ }
     const text = $('installText');
     const btn = $('installBtn');
@@ -1191,10 +1152,16 @@ export class App {
 
   /* ---------- Inicialização ---------- */
   init(): void {
+    this.inViana = setupViana(document);
+    bindVianaBack(document.getElementById('vianaBack'));
     this.exposeHandlers();
     this.registerEvents();
-    this.buildShapeControls();
-    this.buildLogoControls();
+    if (this.page === 'gen') {
+      this.buildShapeControls();
+      this.buildLogoControls();
+      // Cada página de gerador tem um tipo fixo (ex.: /wifi/ → `wifi`).
+      this.currentType = document.body.dataset.type || this.currentType;
+    }
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -1204,14 +1171,16 @@ export class App {
 
     if (isIOS && !isStandalone()) this.showInstall('ios');
 
-    if (isStandalone()) {
-      $('aboutInstallCard').hidden = true;
-    } else if (isIOS) {
+    const installCard = document.getElementById('aboutInstallCard');
+    if (installCard && isStandalone()) {
+      installCard.hidden = true;
+    } else if (installCard && isIOS) {
       $('aboutInstallHint').textContent =
         'No iPhone/iPad: toque em Compartilhar e depois em "Adicionar à Tela de Início".';
     }
 
-    $('readHint').textContent = 'Leia QR Code ou código de barras pela câmera ou de uma imagem do dispositivo.';
+    const readHint = document.getElementById('readHint');
+    if (readHint) readHint.textContent = 'Leia QR Code ou código de barras pela câmera ou de uma imagem do dispositivo.';
 
     attachMask('f_tel', maskPhoneBR);
     attachMask('f_smsnum', maskPhoneBR);
@@ -1223,7 +1192,7 @@ export class App {
     // daí (etapa 2) só a personalização muda, redesenhando o QR ao vivo.
 
     this.handleLaunch();
-    this.initShared();
+    if (this.page === 'home') this.initShared();
   }
 
   /**
@@ -1235,21 +1204,19 @@ export class App {
    */
   private handleLaunch(): void {
     const params = new URLSearchParams(location.search);
-
+    // Compatibilidade com os atalhos/links da versão de página única (`?view=`).
     const view = params.get('view');
-    if (view && ['gen', 'read', 'about'].includes(view)) this.showView(view);
-
+    if (view === 'read') { location.replace('/ler/'); return; }
+    if (view === 'about') { location.replace('/#sobre'); return; }
+    if (this.page !== 'read') return;
     if (params.has('share-target')) {
       history.replaceState(null, '', location.pathname);
-      this.showView('read');
       void this.consumeSharedImage();
     }
-
     const lq = (window as unknown as { launchQueue?: LaunchQueue }).launchQueue;
     lq?.setConsumer((p) => {
       const handle = p.files && p.files[0];
       if (!handle) return;
-      this.showView('read');
       void (async () => { await this.decodeFile(await handle.getFile()); })();
     });
   }
@@ -1269,17 +1236,14 @@ export class App {
   private registerEvents(): void {
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeModal(); });
 
-    window.addEventListener('hashchange', () => {
-      let sp: ShareParams | null;
-      try { sp = this.getSharedParams(); } catch { sp = null; }
-      if (sp) {
-        this.renderShared(sp);
-      } else if ($('view-share').classList.contains('active')) {
-        (document.querySelector('.tabs') as HTMLElement).hidden = false;
-        this.resetCustomization();
-        this.showView('gen');
-      }
-    });
+    if (this.page === 'home') {
+      window.addEventListener('hashchange', () => {
+        let sp: ShareParams | null;
+        try { sp = this.getSharedParams(); } catch { sp = null; }
+        if (sp) void this.renderShared(sp);
+        else this.toggleShareView(false);
+      });
+    }
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -1296,8 +1260,6 @@ export class App {
   /** Expõe ao `window` os handlers usados pelos atributos onclick do HTML. */
   private exposeHandlers(): void {
     const w = window as unknown as Record<string, unknown>;
-    w.showView = (v: string) => this.showView(v);
-    w.setType = (t: string) => this.setType(t);
     w.toggleWifiPass = () => this.toggleWifiPass();
     w.showFormatted = () => this.showFormatted();
     w.doGenerate = () => this.doGenerate();

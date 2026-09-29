@@ -1,16 +1,20 @@
 /*
- * build.mjs — Empacota a fonte de src/ num único dist/index.html self-contained.
- * - Bundla e minifica o JS (app.js + jsQR do npm) num IIFE.
- * - Minifica o CSS.
- * - Injeta ambos no template src/index.html.
- * - Copia os assets estáticos de public/ para dist/.
+ * build.mjs — Gera o site estático em dist/.
+ * - Bundla e minifica o JS (app + jsQR + qr-code-styling + zxing-wasm) em dist/app.js.
+ * - Minifica o CSS em dist/app.css.
+ * - Renderiza uma página HTML por entrada do catálogo (src/site/catalog.ts) a
+ *   partir dos templates de src/templates/, e gera o sitemap.xml.
+ * - Copia os assets estáticos de public/ e o .wasm do leitor de barras.
+ * Tudo é servido pela própria origem: nenhum CDN em runtime.
  */
 import { build } from 'esbuild';
-import { readFile, writeFile, mkdir, copyFile, readdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, copyFile, readdir, rm } from 'node:fs/promises';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 
-// Versão do service worker, em ordem de prioridade:
+// Versão do build, em ordem de prioridade:
 //  1) env NEW_VERSION — definida pela pipeline (job de bump) no deploy;
 //  2) última tag de versão do git (vX.Y.Z → X.Y.Z), quando buildando localmente;
 //  3) '1.0' como padrão (ex.: sem env e sem git/tags).
@@ -28,60 +32,106 @@ function swVersion() {
 }
 
 const OUT = 'dist';
+const TPL = 'src/templates';
+await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
+const version = swVersion();
 
-// 1) JS: bundle + minify a partir do entry TypeScript (jsQR entra aqui, via import)
-const js = await build({
+// 1) JS do app: bundle + minify a partir do entry TypeScript.
+await build({
   entryPoints: ['src/main.ts'],
   bundle: true,
   format: 'iife',
   minify: true,
   target: ['es2019'],
   legalComments: 'none',
-  write: false,
+  outfile: path.join(OUT, 'app.js'),
 });
 
-// 2) CSS: minify
-const css = await build({
+// 2) CSS: minify.
+await build({
   entryPoints: ['src/styles.css'],
   bundle: true,
   minify: true,
-  loader: { '.css': 'css' },
-  write: false,
+  outfile: path.join(OUT, 'app.css'),
 });
 
-// Evita que um eventual "</script>" no bundle feche a tag cedo demais.
-const jsCode = js.outputFiles[0].text.replace(/<\/(script)/gi, '<\\/$1');
-const cssCode = css.outputFiles[0].text.trim();
+// Hash do conteúdo do JS+CSS: vai no `?v=` dos assets e no nome do cache do
+// service worker. Assim qualquer mudança real invalida o cache — inclusive entre
+// builds locais com a mesma versão (antes, o SW continuava servindo o CSS velho).
+const hashOf = (...parts) => {
+  const h = createHash('sha256');
+  for (const p of parts) h.update(p);
+  return h.digest('hex').slice(0, 10);
+};
+const assetHash = hashOf(await readFile(path.join(OUT, 'app.js')), await readFile(path.join(OUT, 'app.css')));
 
-// Versão do build (env da pipeline → última tag → 1.0). Injetada no HTML e no SW.
-const version = swVersion();
+// 3) Catálogo + renderizador (TypeScript puro) compilados para um módulo Node
+//    temporário e importados aqui — a mesma fonte que o app usa.
+const siteMod = path.resolve(OUT, '.site.mjs');
+await build({
+  entryPoints: ['src/site/render.ts'],
+  bundle: true,
+  format: 'esm',
+  platform: 'node',
+  outfile: siteMod,
+});
+const site = await import(pathToFileURL(siteMod).href);
+await rm(siteMod);
 
-// 3) Injeta no template (função evita interpretação de $ no conteúdo).
-const tpl = await readFile('src/index.html', 'utf8');
-const html = tpl
-  .replace('/*__CSS__*/', () => cssCode)
-  .replace('/*__JS__*/', () => jsCode.trim())
-  .replaceAll('__VERSION__', version);
-await writeFile(path.join(OUT, 'index.html'), html);
+// 4) Templates.
+const readDir = async (dir) => {
+  const out = {};
+  for (const f of await readdir(dir)) {
+    if (f.endsWith('.html')) out[f.replace(/\.html$/, '')] = await readFile(path.join(dir, f), 'utf8');
+  }
+  return out;
+};
+const pages = await readDir(path.join(TPL, 'pages'));
+const templates = {
+  layout: await readFile(path.join(TPL, 'layout.html'), 'utf8'),
+  pages: { home: pages.home, gen: pages.generator, read: pages.reader, privacy: pages.privacy },
+  partials: await readDir(path.join(TPL, 'partials')),
+  fields: await readDir(path.join(TPL, 'fields')),
+};
 
-// 4) Copia assets estáticos (o sw.js é tratado à parte no passo 6, com versão).
+// 5) Páginas: `/` → dist/index.html; `/wifi/` → dist/wifi/index.html.
+const written = [];
+const htmls = [];
+for (const page of site.PAGES) {
+  const html = site.renderPage(page, templates, assetHash).replaceAll('__VERSION__', version);
+  htmls.push(html);
+  const dir = path.join(OUT, page.path);
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, 'index.html'), html);
+  written.push(page.path);
+}
+
+// 6) Sitemap gerado do catálogo.
+await writeFile(path.join(OUT, 'sitemap.xml'), site.renderSitemap(new Date().toISOString().slice(0, 10)));
+
+// 7) Assets estáticos (o sw.js é tratado à parte no passo 9).
 for (const file of await readdir('public')) {
   if (file === 'sw.js') continue;
   await copyFile(path.join('public', file), path.join(OUT, file));
 }
 
-// 5) Copia o WASM do leitor de código de barras (zxing-wasm) para a raiz do dist.
-// É o único binário que não dá para embutir no HTML; o service worker o cacheia
-// (precache) para funcionar offline. O barcode.ts o carrega por './zxing_reader.wasm'.
+// 8) WASM do leitor de código de barras (zxing-wasm), servido pela própria
+// origem; o service worker o cacheia para funcionar offline.
 await copyFile(
   'node_modules/zxing-wasm/dist/reader/zxing_reader.wasm',
   path.join(OUT, 'zxing_reader.wasm'),
 );
 
-// 6) Service worker: injeta a mesma versão na versão do cache, disparando a
-// atualização do SW no cliente a cada release.
-const sw = (await readFile('public/sw.js', 'utf8')).replaceAll('__BUILD_HASH__', version);
+// 9) Service worker: injeta versão + hash do conteúdo (nome do cache) e a lista
+// de páginas a pré-cachear — qualquer mudança em JS, CSS ou páginas troca o SW
+// e o precache.
+const cacheId = `${version}-${hashOf(assetHash, ...htmls)}`;
+const sw = (await readFile('public/sw.js', 'utf8'))
+  .replaceAll('__BUILD_HASH__', cacheId)
+  .replaceAll('__ASSET_HASH__', assetHash)
+  .replace("'__PAGES__'", written.map((p) => `'${p}'`).join(', '));
 await writeFile(path.join(OUT, 'sw.js'), sw);
 
-console.log(`Build OK -> ${OUT}/index.html (${Math.round(Buffer.byteLength(html) / 1024)}KB) · sw ${version}`);
+const kb = async (f) => Math.round((await readFile(path.join(OUT, f))).length / 1024);
+console.log(`Build OK -> ${written.length} páginas · app.js ${await kb('app.js')}KB · app.css ${await kb('app.css')}KB · v${version} · cache ${cacheId}`);

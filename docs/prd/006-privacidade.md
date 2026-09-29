@@ -4,7 +4,7 @@
 |---|---|
 | **Status** | Implementado |
 | **Spec** | [SPEC-006](../specs/006-privacidade.md) |
-| **Módulo** | `src/index.html` (`#view-privacy`, `#view-about`), `src/app.ts` |
+| **Módulo** | `src/templates/partials/privacy.html`, `src/templates/partials/about.html`, `src/templates/layout.html`, `src/app.ts` |
 | **Atualizado em** | 2026-09-29 |
 
 ## 1. Problema
@@ -13,12 +13,12 @@ QR Codes carregam dados sensíveis: senha de Wi-Fi, contatos, dados de pagamento
 ## 2. Objetivos
 - Garantir que o conteúdo gerado ou lido nunca saia do dispositivo.
 - Explicar em linguagem simples, dentro do app, exatamente o que acontece com cada dado.
-- Tornar a promessa verificável: código aberto e build em um único arquivo.
+- Tornar a promessa verificável: código aberto e tudo servido pela própria origem, sem scripts de terceiros.
 - Pedir consentimento explícito para a única exceção (o mapa).
 
 ## 3. Cenários de uso
 - Vou gerar o QR da senha do Wi-Fi da empresa e quero ter certeza de que ela não fica num servidor: abro a página Privacidade.
-- Sou desenvolvedor e desconfio: abro o repositório e o `index.html` e confiro que não há chamadas externas.
+- Sou desenvolvedor e desconfio: abro o repositório e o HTML/JS publicados e confiro que não há chamadas externas.
 - Vou usar o mapa para marcar um local: o app me avisa, antes, que isso usa o OpenStreetMap.
 
 ## 4. Requisitos funcionais
@@ -29,7 +29,7 @@ QR Codes carregam dados sensíveis: senha de Wi-Fi, contatos, dados de pagamento
 | PRV-F03 | Consentimento explícito ("Escolher no mapa") antes de qualquer requisição ao OSM | Must |
 | PRV-F04 | Aviso ao ler Pix: pode conter dados pessoais; não compartilhe o código nem prints | Should |
 | PRV-F05 | Aviso de que o link compartilhado fica visível para quem o recebe | Should |
-| PRV-F06 | Aba Sobre com créditos das bibliotecas e link para o repositório | Should |
+| PRV-F06 | Seção Sobre (home) com créditos das bibliotecas e link para o repositório | Should |
 
 ## 5. Requisitos não funcionais
 | ID | Requisito |

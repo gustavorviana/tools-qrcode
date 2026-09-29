@@ -11,7 +11,7 @@
 Cada tipo de conteúdo tem um grupo de campos no HTML (`.fgroup[data-fields=<tipo>]`). `App.buildContent()` lê os campos do tipo atual e monta o payload com as funções puras de `format.ts`. O `QRDesigner` codifica o payload via `qr-code-styling` e devolve um SVG. Após a primeira geração, o app entra em modo "ao vivo" para a personalização (SPEC-002).
 
 ## 2. Módulos e dependências
-- `src/app.ts`: `setType`, `buildContent`, `showFormatted`, `doGenerate`, `regenerate`, `renderPreview`, `backToContent` e o mapa (`loadMap`, `drawMap`, `bindMapDrag`, `mapZoom`, `searchAddress`, `useCurrentLocation`).
+- `src/app.ts`: `buildContent`, `showFormatted`, `doGenerate`, `regenerate`, `renderPreview`, `backToContent` e o mapa (`loadMap`, `drawMap`, `bindMapDrag`, `mapZoom`, `searchAddress`, `useCurrentLocation`).
 - `src/format.ts`: `escWifi`, `escVcard`, `icalDate`, `maskPhoneBR`, `maskPhoneWa`, `socialUrl`, `paypalUrl`, `mecard`, `zoomUrl`.
 - `src/qr/designer.ts` → `generator.ts` → `qr-code-styling`.
 - Externo (opt-in): `tile.openstreetmap.org`, `nominatim.openstreetmap.org`.
@@ -42,7 +42,6 @@ Estado relevante em `App`: `currentType`, `lastText`, `lastSVG`, `live`, `liveTi
 ## 4. Componentes
 ```ts
 class App {
-  setType(t: string): void
   showFormatted(): void
   doGenerate(): Promise<void>
   backToContent(): void
@@ -64,7 +63,7 @@ function maskPhoneWa(v: string): string
 
 ## 5. Fluxos
 **Gerar**
-1. `setType(t)` ativa a aba e o grupo de campos, e esconde a prévia e a etapa 3.
+1. O tipo vem da página (`<body data-type>`, ex.: `/wifi/`, `/zoom/`); cada página tem só os campos do seu tipo.
 2. `doGenerate()` chama `regenerate()`: `buildContent()` monta o payload; se vier vazio, a etapa 3 é ocultada.
 3. `designer.text = payload`, `designer.ecl = effectiveEcl()` (SPEC-002), `renderPreview()`.
 4. `renderPreview()` incrementa `renderSeq`, gera o SVG e descarta o resultado se outro render tiver começado depois. Injeta o SVG em `#qrPreview` e preenche `#qrMeta`.

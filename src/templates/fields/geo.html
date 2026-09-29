@@ -1,0 +1,35 @@
+<!-- Localização (geo) -->
+<div class="fgroup" data-fields="geo">
+  <div class="row">
+    <div>
+      <label class="fld req" for="f_geolat">Latitude</label>
+      <input type="text" id="f_geolat" placeholder="-23.5505" inputmode="decimal">
+    </div>
+    <div>
+      <label class="fld req" for="f_geolng">Longitude</label>
+      <input type="text" id="f_geolng" placeholder="-46.6333" inputmode="decimal">
+    </div>
+  </div>
+  <button class="btn ghost" style="margin-top:12px" onclick="useCurrentLocation()">Usar localização atual</button>
+  <!-- Aviso antes de carregar o mapa (tiles/busca externos) -->
+  <div class="map-consent" id="mapConsent">
+    <p>O mapa usa o <b>OpenStreetMap</b> (servidor externo) — o único momento em que o app busca algo fora do seu dispositivo. Ele carrega as imagens do mapa e, ao buscar um endereço, <b>envia o texto digitado</b> ao OpenStreetMap. Suas coordenadas em si não são enviadas.</p>
+    <button class="btn ghost" onclick="loadMap()">Escolher no mapa</button>
+  </div>
+  <!-- Busca de endereço (geocodificação via Nominatim/OSM) -->
+  <div class="map-search" id="mapSearch" hidden>
+    <input type="text" id="f_geoquery" placeholder="Buscar endereço ou lugar…">
+    <button class="btn" onclick="searchAddress()">Buscar</button>
+  </div>
+  <!-- Mapa interativo (arraste; o pino no centro marca o ponto) -->
+  <div class="map-wrap" id="mapWrap" hidden>
+    <div class="map-tiles" id="mapTiles"></div>
+    <div class="map-pin">📍</div>
+    <div class="map-zoom">
+      <button type="button" onclick="mapZoom(1)" aria-label="Aproximar">+</button>
+      <button type="button" onclick="mapZoom(-1)" aria-label="Afastar">−</button>
+    </div>
+    <div class="map-attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+  </div>
+  <p class="hint" id="mapHint" style="margin-top:8px" hidden>Arraste o mapa: o pino no centro marca a localização.</p>
+</div>

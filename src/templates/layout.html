@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<meta name="author" content="Gustavo Viana">
+<link rel="canonical" href="{{url}}">
+
+<!-- Open Graph / preview de compartilhamento -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="QR Utils">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{description}}">
+<meta property="og:url" content="{{url}}">
+<meta property="og:image" content="https://qr.tools.grviana.com.br/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{title}}">
+<meta name="twitter:description" content="{{description}}">
+<meta name="twitter:image" content="https://qr.tools.grviana.com.br/og-image.png">
+
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="stylesheet" href="/app.css?v={{version}}">
+<!-- Dentro do app Viana Utils (window.VianaApp): marca o documento antes de pintar,
+     para esconder "instalar como app" sem piscar. Ver src/viana.ts. -->
+<script>if(window.VianaApp)document.documentElement.classList.add('in-viana')</script>
+
+<!-- Dados estruturados: ajudam o Google a entender e exibir a página nos resultados. -->
+{{{jsonld}}}
+</head>
+<body data-page="{{kind}}" data-type="{{type}}">
+  <header class="site-header">
+    <div class="site-header-in">
+      <!-- Só no app Viana Utils: oculto por padrão; src/viana.ts o exibe quando window.VianaApp existe. -->
+      <a class="viana-back" id="vianaBack" href="/" hidden aria-label="Voltar ao Viana Utils"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Voltar</span></a>
+      <a class="brand" href="/" aria-label="QR Utils — início">
+        <span class="logo">{{{logoIcon}}}</span>
+        <span class="brand-name">QR Utils</span>
+      </a>
+      <nav class="site-nav" aria-label="Principal">
+        <a href="/"{{{navCreate}}}>Criar</a>
+        <a href="/ler/"{{{navRead}}}>Ler QR Code</a>
+        <a href="/#sobre">Sobre</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+{{{content}}}
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-in">
+      <p>
+        Processamento local — nenhum dado é enviado a servidores. ·
+        <a href="/privacidade/">Privacidade</a> ·
+        <a href="https://github.com/gustavorviana/tools-qrcode" target="_blank" rel="noopener">Código aberto</a>
+      </p>
+    </div>
+  </footer>
+
+<!--@include overlays-->
+
+<script src="/app.js?v={{version}}" defer></script>
+</body>
+</html>

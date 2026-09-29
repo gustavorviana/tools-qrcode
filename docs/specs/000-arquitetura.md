@@ -8,7 +8,7 @@
 | **Atualizado em** | 2026-09-29 |
 
 ## 1. Resumo
-SPA em TypeScript, sem framework. O `esbuild` faz o bundle e injeta JS e CSS inline num único `dist/index.html`. Ficam à parte só os arquivos que a plataforma exige: service worker, manifesto, ícones, imagens e o `.wasm` do ZXing. A publicação é estática, num Cloudflare Worker com static assets. Cada PR mesclado em `main` gera uma versão semântica, faz o deploy e cria a tag.
+Site estático multipágina em TypeScript, sem framework. O `esbuild` gera um `app.js` e um `app.css` compartilhados, e o build renderiza uma página HTML por entrada do catálogo a partir de templates ([SPEC-007](007-site-multipagina.md)). Também saem: service worker, manifesto, ícones, imagens, `sitemap.xml` e o `.wasm` do ZXing. A publicação é estática, num Cloudflare Worker com static assets. Cada PR mesclado em `main` gera uma versão semântica, faz o deploy e cria a tag.
 
 ## 2. Módulos e dependências
 | Módulo | Responsabilidade | Depende de |
@@ -43,12 +43,12 @@ Não há banco nem back-end. O estado vive em memória na instância `App`. O qu
 
 ## 5. Fluxos
 **Build** (`npm run build`)
-1. Bundle e minificação de `src/main.ts` (IIFE, ES2019, sem comentários legais).
-2. Minificação de `src/styles.css`.
-3. Injeção em `src/index.html` (`/*__CSS__*/`, `/*__JS__*/`), escapando `</script>` e trocando `__VERSION__`.
+1. Bundle e minificação de `src/main.ts` em `dist/app.js` (IIFE, ES2019, sem comentários legais).
+2. Minificação de `src/styles.css` em `dist/app.css`.
+3. Renderização das páginas do catálogo (`src/site/render.ts` + `src/templates/`) em `dist/<caminho>/index.html`, trocando `__VERSION__`; geração do `sitemap.xml`.
 4. Cópia de `public/*` (exceto `sw.js`) para `dist/`.
 5. Cópia de `node_modules/zxing-wasm/dist/reader/zxing_reader.wasm` para `dist/`.
-6. Geração de `dist/sw.js` com `__BUILD_HASH__` trocado pela versão.
+6. Geração de `dist/sw.js` com `<versão>-<hash do conteúdo>` no nome do cache e a lista de páginas. O `?v=` de `app.js`/`app.css` também é o hash do conteúdo deles.
 
 **CI** (PR para `main`): `npm ci` → `typecheck` → `test` → `build`.
 
@@ -58,15 +58,14 @@ Não há banco nem back-end. O estado vive em memória na instância `App`. O qu
 3. Cria e envia a tag `v<NEW_VERSION>`.
 
 ## 6. UI
-Views em `src/index.html`, alternadas por `showView()`:
+Páginas estáticas, identificadas por `<body data-page>` ([SPEC-007](007-site-multipagina.md)):
 
-| View | Conteúdo |
+| Página | Conteúdo |
 |---|---|
-| `gen` | geração (SPEC-001, 002, 003) |
-| `read` | leitura (SPEC-004) |
-| `about` | créditos, formatos, instalar, repositório |
-| `privacy` | privacidade (SPEC-006) |
-| `share` | QR compartilhado (SPEC-003) |
+| `home` (`/`) | cards dos tipos, Como funciona, Sobre (créditos, instalar, repositório) e o QR compartilhado (SPEC-003) |
+| `gen` (`/wifi/`, `/zoom/`… — uma por tipo) | geração (SPEC-001, 002, 003) |
+| `read` (`/ler/`) | leitura e formatos (SPEC-004) |
+| `privacy` (`/privacidade/`) | privacidade (SPEC-006) |
 
 Há também a barra de instalação, o modal do QR ampliado e o toast.
 
@@ -97,7 +96,7 @@ Concluído. Marcos:
 6. `506c1df` CI nos PRs.
 
 ## 11. Decisões e alternativas descartadas
-- **Arquivo único vs. assets separados:** único, para ser auditável e simples de cachear. Custo: o HTML inteiro é baixado de novo a cada release.
+- **Arquivo único → `app.js`/`app.css` compartilhados:** o arquivo único servia bem a uma página só; com várias páginas, o bundle (~267 KB) seria baixado de novo a cada uma. Continua tudo na própria origem, sem CDN.
 - **Sem framework (React/Vue):** a UI é pequena e o bundle fica menor e sem dependência de runtime.
 - **Worker com static assets vs. Pages com build na Cloudflare:** a pipeline do GitHub controla a versão e a tag antes do deploy.
 - **Versão por Conventional Commits:** automática, sem editar o `package.json` a cada release.

@@ -1,0 +1,24 @@
+<!-- Banner de instalação (PWA) -->
+<div class="install-bar no-viana" id="installBar" hidden>
+  <div class="install-text" id="installText"></div>
+  <div class="install-actions">
+    <button class="btn small" id="installBtn" onclick="installApp()">Instalar</button>
+    <button class="install-close" onclick="dismissInstall()" aria-label="Agora não">✕</button>
+  </div>
+</div>
+
+<!-- Modal do QR ampliado -->
+<div class="modal" id="qrModal" hidden>
+  <div class="modal-backdrop" onclick="closeModal()"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-label="QR Code ampliado">
+    <button class="modal-close" onclick="closeModal()" aria-label="Fechar">✕</button>
+    <div class="modal-qr"><div id="qrModalBox" class="qr-preview modal-svg"></div></div>
+    <div class="modal-meta" id="qrModalMeta"></div>
+    <div class="grid2" style="margin-top:10px">
+      <button class="btn ghost" onclick="downloadPNG()">Baixar PNG</button>
+      <button class="btn ok" onclick="shareQR()">Compartilhar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>

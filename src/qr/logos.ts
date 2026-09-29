@@ -67,7 +67,10 @@ export const LOGOS: LogoDef[] = [
   { name: 'telegram', label: 'Telegram', bg: '#229ED9', glyph: g24(TELEGRAM) },
   {
     name: 'tel', label: 'Telefone', bg: '#3B82F6',
-    glyph: (c) => `<path fill="${c}" d="M47 41c-2-3-6-4-9-2l-8 5c-3 2-4 6-3 9 3 16 12 30 24 42s26 21 42 24c3 1 7-1 9-4l5-8c2-3 1-7-2-9l-16-9c-2-1-6-1-8 1l-6 5c-1 1-3 1-4 0-9-6-16-13-22-22-1-1-1-3 0-4l5-6c2-2 2-6 1-8z"/>`,
+    // O path original fica fora do centro (caixa 26.6–108 × 38–119.3) e maior que os
+    // demais glifos: centraliza em (64,64) e reduz para ~62 unidades, como os outros.
+    glyph: (c) => `<g transform="translate(64 64) scale(0.76) translate(-67.3 -78.65)">`
+      + `<path fill="${c}" d="M47 41c-2-3-6-4-9-2l-8 5c-3 2-4 6-3 9 3 16 12 30 24 42s26 21 42 24c3 1 7-1 9-4l5-8c2-3 1-7-2-9l-16-9c-2-1-6-1-8 1l-6 5c-1 1-3 1-4 0-9-6-16-13-22-22-1-1-1-3 0-4l5-6c2-2 2-6 1-8z"/></g>`,
   },
   {
     name: 'email', label: 'E-mail', bg: '#6366F1',
