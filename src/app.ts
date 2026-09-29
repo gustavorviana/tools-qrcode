@@ -19,6 +19,7 @@ import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
 import { SHARE_DEFAULTS, PNG_SIZES, buildShareQuery, parseShareQuery } from './qr/share';
 import type { ShareParams } from './qr/share';
+import { setupViana, vianaExit } from './viana';
 
 /* ---------- Helpers de DOM ---------- */
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
@@ -282,6 +283,9 @@ export class App {
   private deferredPrompt: { prompt(): void; userChoice: Promise<{ outcome: string }> } | null = null;
 
   /* ---------- Página ---------- */
+  /** Aberto dentro do app Viana Utils (`window.VianaApp`)? Ver ./viana. */
+  private inViana = false;
+
   /** Página atual (`home`, `gen`, `read`, `privacy`), definida no HTML gerado. */
   private readonly page = document.body.dataset.page ?? 'home';
 
@@ -1105,7 +1109,8 @@ export class App {
 
   /* ---------- Instalação (PWA) ---------- */
   private showInstall(mode: 'ios' | 'android'): void {
-    if (isStandalone()) return;
+    // Dentro do Viana Utils não existe "instalar"; o banner nunca aparece.
+    if (isStandalone() || this.inViana) return;
     try { if (localStorage.getItem('installDismissed')) return; } catch { /* ignore */ }
     const text = $('installText');
     const btn = $('installBtn');
@@ -1140,6 +1145,7 @@ export class App {
 
   /* ---------- Inicialização ---------- */
   init(): void {
+    this.inViana = setupViana(document);
     this.exposeHandlers();
     this.registerEvents();
     if (this.page === 'gen') {
@@ -1263,6 +1269,7 @@ export class App {
     w.promptInstall = () => this.promptInstall();
     w.exitShared = () => this.exitShared();
     w.backToContent = () => this.backToContent();
+    w.vianaExit = () => vianaExit();
     w.useCurrentLocation = () => this.useCurrentLocation();
     w.loadMap = () => this.loadMap();
     w.mapZoom = (d: number) => this.mapZoom(d);

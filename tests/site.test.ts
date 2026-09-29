@@ -103,6 +103,22 @@ describe('renderPage', () => {
     expect(h).toContain('id="sobre"');
   });
 
+  it('toda página marca in-viana no <head> e tem o "‹ Voltar" do Viana Utils', () => {
+    for (const p of PAGES) {
+      const h = html(p.path);
+      const head = h.slice(0, h.indexOf('</head>'));
+      expect(head, p.path).toContain("if(window.VianaApp)document.documentElement.classList.add('in-viana')");
+      expect(h, p.path).toContain('class="viana-back viana-only" onclick="vianaExit()"');
+    }
+  });
+
+  it('toda menção a instalar como app some dentro do Viana Utils (classe no-viana)', () => {
+    const home = html('/');
+    expect(home).toContain('class="card no-viana" id="aboutInstallCard"');
+    expect(home).toContain('class="install-bar no-viana"');
+    expect(home).toContain('<span class="no-viana">Instale como app e use</span>');
+  });
+
   it('não carrega script nem estilo de outra origem', () => {
     for (const p of PAGES) {
       const h = html(p.path);

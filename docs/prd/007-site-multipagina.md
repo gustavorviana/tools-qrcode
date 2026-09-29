@@ -27,7 +27,7 @@
 ## 4. Requisitos funcionais
 | ID | Requisito | Prioridade |
 |---|---|---|
-| WEB-F01 | Home com H1, cards dos 8 tipos mais usados (ícone, nome, descrição, seta), um divisor "Mais tipos" que expande os cards dos outros 13 tipos, e card para o leitor | Must |
+| WEB-F01 | Home com H1, card para o leitor logo abaixo do título (antes das opções de geração), cards dos 8 tipos mais usados (ícone, nome, descrição, seta) e um divisor "Mais tipos" que expande os cards dos outros 13 tipos | Must |
 | WEB-F02 | Home com as seções "Como funciona" (3 passos) e "Sobre" (`#sobre`) | Must |
 | WEB-F03 | Uma página por tipo (21): `/link/`, `/wifi/`, `/whatsapp/`, `/texto/`, `/contato/`, `/email/`, `/telefone/`, `/instagram/`, `/sms/`, `/local/`, `/evento/`, `/facebook/`, `/telegram/`, `/youtube/`, `/tiktok/`, `/x/`, `/linkedin/`, `/paypal/`, `/mecard/`, `/app/`, `/zoom/` | Must |
 | WEB-F05 | Páginas `/ler/` (leitor) e `/privacidade/` | Must |

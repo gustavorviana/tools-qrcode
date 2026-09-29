@@ -20,10 +20,11 @@ continua sendo o guia de desenvolvimento.
 | 005 | PWA e offline | [PRD-005](prd/005-pwa-offline.md) | [SPEC-005](specs/005-pwa-offline.md) | Implementado |
 | 006 | Privacidade | [PRD-006](prd/006-privacidade.md) | [SPEC-006](specs/006-privacidade.md) | Implementado |
 | 007 | Site multipágina e SEO | [PRD-007](prd/007-site-multipagina.md) | [SPEC-007](specs/007-site-multipagina.md) | Implementado |
+| 008 | Integração com o Viana Utils | [PRD-008](prd/008-viana-utils.md) | [SPEC-008](specs/008-viana-utils.md) | Implementado |
 
 ## Convenções
 
-- IDs de requisito usam o prefixo da util: `APP`, `GEN`, `CUS`, `EXP`, `LER`, `PWA`, `PRV`, `WEB`.
+- IDs de requisito usam o prefixo da util: `APP`, `GEN`, `CUS`, `EXP`, `LER`, `PWA`, `PRV`, `WEB`, `VIA`.
   A seção "Testes" da spec aponta quais IDs cada teste cobre.
 - Status: `Rascunho` → `Aprovado` → `Em implementação` → `Implementado`.
 - Mudou o comportamento? Atualize o PRD e a spec no mesmo PR, com a data em "Atualizado em".

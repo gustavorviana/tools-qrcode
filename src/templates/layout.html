@@ -28,6 +28,9 @@
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/icon.svg">
 <link rel="stylesheet" href="/app.css?v={{version}}">
+<!-- Dentro do app Viana Utils (window.VianaApp): marca o documento antes de pintar,
+     para esconder "instalar como app" sem piscar. Ver src/viana.ts. -->
+<script>if(window.VianaApp)document.documentElement.classList.add('in-viana')</script>
 
 <!-- Dados estruturados: ajudam o Google a entender e exibir a página nos resultados. -->
 {{{jsonld}}}
@@ -35,6 +38,7 @@
 <body data-page="{{kind}}" data-type="{{type}}">
   <header class="site-header">
     <div class="site-header-in">
+      <button type="button" class="viana-back viana-only" onclick="vianaExit()" aria-label="Voltar ao Viana Utils">‹ Voltar</button>
       <a class="brand" href="/" aria-label="QR Utils — início">
         <span class="logo">{{{logoIcon}}}</span>
         <span class="brand-name">QR Utils</span>

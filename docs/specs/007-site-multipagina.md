@@ -95,9 +95,9 @@ No `App` (`src/app.ts`):
 - **Cabeçalho** fixo (`.site-header`): marca + nav, com `aria-current` na seção atual.
 - **Home:**
   - hero com selo "100% no seu navegador";
+  - `.read-card` escuro ("Ler QR Code ou código de barras") logo abaixo do hero, antes dos tipos;
   - `.type-grid` (1/2/3 colunas em <640/≥640/≥960 px) com `.type-card` dos 8 tipos em destaque;
   - divisor `<details class="more-types">` ("——— Mais tipos ⌄ ———") que expande os cards dos demais tipos. Os links ficam no HTML mesmo com ele fechado, e ele funciona sem JS;
-  - `.read-card` escuro;
   - "Como funciona" (`.how-steps`);
   - "Sobre" (`.pillars` + cards de privacidade, instalar, créditos, projeto).
 - **Página de tipo:** breadcrumb, `.page-head` (ícone + H1 + lead), etapas 1/2/3 como antes, "Como fazer", FAQ (`<details class="faq">`) e o link "← Voltar ao início". Não lista outros tipos.
