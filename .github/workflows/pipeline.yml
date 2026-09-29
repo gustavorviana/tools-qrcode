@@ -17,6 +17,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Gate de qualidade: o deploy só roda se typecheck e testes passarem no código
+  # da main. Protege produção mesmo em disparo manual ou se um PR for mesclado
+  # sem o CI verde. Roda em paralelo ao bump (que só calcula a versão).
+  test:
+    name: Typecheck e testes
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true }}
+    steps:
+      - name: Checkout da main
+        uses: actions/checkout@v5
+        with:
+          ref: main       # pós-merge: testa exatamente o que vai ser publicado
+
+      - name: Configurar Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Typecheck (tsc)
+        run: npm run typecheck
+
+      - name: Testes (vitest)
+        run: npm test
+
   bump:
     name: Calcular versão
     runs-on: ubuntu-latest
@@ -94,7 +122,8 @@ jobs:
 
   deploy:
     name: Build + deploy (Cloudflare Pages)
-    needs: bump
+    # Só publica (e só cria a tag, último passo deste job) se os testes passarem.
+    needs: [bump, test]
     runs-on: ubuntu-latest
     # A versão calculada chega como env var, exatamente como o build.mjs espera.
     env:

@@ -53,7 +53,7 @@ Quem precisa gerar ou ler um QR Code costuma cair em ferramentas que:
 | APP-N05 | Tudo servido pela própria origem: HTML estático por página, um `app.js` e um `app.css` compartilhados, sem CDN em runtime ([PRD-007](007-site-multipagina.md)). |
 | APP-N06 | Interface em pt-BR, responsiva e usável no celular. |
 | APP-N07 | Hospedagem apenas estática; sem código de servidor. |
-| APP-N08 | Todo PR para `main` passa typecheck, testes e build no CI. |
+| APP-N08 | Todo PR para `main` passa typecheck, testes e build no CI, e a pipeline de release roda typecheck e testes de novo na `main` antes do deploy (falhou → não publica). |
 
 ## 6. Configurações
 Não há configurações globais. O único dado persistido é `installDismissed` ([PRD-005](005-pwa-offline.md)).
