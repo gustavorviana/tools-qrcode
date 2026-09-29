@@ -36,6 +36,8 @@ Link: `<origin><pathname>#q=<texto>&<opções>`. Também é aceito em `?q=` na q
 | `fr` | moldura | `none` | `none\|corners\|border\|label` |
 | `cap` | legenda | `ESCANEIE` | só se `fr` ≠ `none` |
 | `sz` | PNG | `1024` | `512\|1024\|2048\|4096` |
+| `lg` | logo pronto | ausente | nomes de `LOGOS` (`src/qr/logos.ts`) |
+| `lc` | logo colorido (só com `lg`) | ausente = monocromático | `1` |
 
 ```ts
 interface ShareState { text; ecl; fg; bg; eyeFrameColor?; eyeCenterColor?; bgTransparent; shape; eyeFrame; eyeCenter; qrShape; frame; caption; size }
@@ -69,7 +71,7 @@ function parseShareQuery(raw: string): ShareParams | null
 **Sair do link:** `exitShared()` navega para `/` (página limpa, sem o `#q=…`), o que também descarta as opções do link.
 
 ## 6. UI
-- Etapa 3 `#step3`: prévia clicável, `#pngSize`, "Baixar PNG", "Baixar SVG", "Compartilhar imagem", "Compartilhar link do QR", o aviso `#shareLinkNote` (só com logo) e `#qrMeta`.
+- Etapa 3 `#step3`: prévia clicável, `#pngSize`, "Baixar PNG", "Baixar SVG", "Compartilhar imagem", "Compartilhar link do QR", o aviso `#shareLinkNote` (só com logo de imagem própria) e `#qrMeta`.
 - Modal `#qrModal`: largura 220, 300, 380 ou 460 px conforme o tamanho (máximo 88vw); fecha com ✕, com o fundo ou com Esc.
 - View `#view-share`: QR, conteúdo interpretado e o botão "Criar o meu QR Code".
 
@@ -89,7 +91,8 @@ function parseShareQuery(raw: string): ShareParams | null
 | Hex de 5 ou 7 dígitos | rejeitado |
 | Conteúdo do link grande demais | segue o app normal, sem erro |
 | Legenda igual ao padrão ou sem moldura | `cap` omitido |
-| Logo ativo | não entra no link; aviso visível |
+| Logo pronto ativo | entra como `lg=<nome>` (+ `lc=1` se colorido); ao abrir, é redesenhado com as cores do link |
+| Logo de imagem própria | não entra no link; aviso visível |
 
 ## 9. Testes
 | Teste | Cobre |
@@ -106,4 +109,4 @@ Concluído. Marcos: `9f0177b` (opções no link), `a44e7f6` (tamanho de exporta�
 - **Fragmento `#` em vez de query:** o fragmento não vai ao servidor nem aos logs.
 - **Omitir padrões:** URLs menores; o padrão é a fonte de verdade (`SHARE_DEFAULTS`).
 - **Supersampling 4× + desfazer clip-path:** o `crispEdges` da lib deixava vãos de 1 px com módulos de tamanho fracionário.
-- **Logo fora do link:** um data URL incharia a URL além do limite prático dos mensageiros.
+- **Logo pronto pelo nome, imagem própria fora do link:** o site já tem os logos prontos, então basta o nome (poucos bytes). Uma imagem enviada viraria um data URL que incharia a URL além do limite prático dos mensageiros.

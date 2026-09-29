@@ -27,9 +27,9 @@ Depois de gerar, o QR precisa sair do app: em imagem para imprimir ou postar, em
 | EXP-F02 | Baixar SVG vetorial idêntico à prévia | Must |
 | EXP-F03 | Compartilhar a imagem pela Web Share API, com download como alternativa | Should |
 | EXP-F04 | Ampliar o QR num modal, com Baixar PNG e Compartilhar | Could |
-| EXP-F05 | Compartilhar um link com o conteúdo e as opções de estilo que fogem do padrão | Should |
+| EXP-F05 | Compartilhar um link com o conteúdo e as opções de estilo que fogem do padrão, incluindo o logo quando for um dos logos prontos do site (pelo nome) | Should |
 | EXP-F06 | Abrir o link mostra o QR e o conteúdo interpretado, com um botão "Criar o meu QR Code" | Should |
-| EXP-F07 | Avisar que o logo não vai no link quando houver logo | Should |
+| EXP-F07 | Avisar que o logo não vai no link quando ele for uma imagem própria (os logos prontos vão) | Should |
 
 ## 5. Requisitos não funcionais
 | ID | Requisito |

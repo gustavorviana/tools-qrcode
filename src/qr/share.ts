@@ -1,11 +1,13 @@
 /*
  * Link compartilhável — serializa/deserializa o texto e as opções de estilo num
  * fragmento de URL (`q=…&e=…&fg=…`). Só o que foge do padrão entra, para manter
- * a URL enxuta; o logo nunca entra (é imagem). Puro: não toca em `location`.
+ * a URL enxuta. O logo só entra quando é um dos logos prontos (./logos), pelo
+ * nome; uma imagem enviada pela pessoa nunca entra. Puro: não toca em `location`.
  */
 import type { Ecl, ModuleShape, EyeFrameShape, EyeCenterShape, FrameStyle } from './types';
 import type { ShapeType } from 'qr-code-styling';
 import { BODY, EYE_FRAME } from './shapes';
+import { LOGOS } from './logos';
 
 /** Opções que um link compartilhado pode carregar (texto + o que fugir do padrão). */
 export interface ShareParams {
@@ -23,6 +25,10 @@ export interface ShareParams {
   frame?: FrameStyle;
   caption?: string;
   size?: number;
+  /** Logo pronto (nome em LOGOS). */
+  logo?: string;
+  /** Logo monocromático (padrão) ou colorido (`false`). */
+  logoMono?: boolean;
 }
 
 /** Estado completo da personalização atual, usado para montar o link. */
@@ -41,6 +47,9 @@ export interface ShareState {
   frame: FrameStyle;
   caption: string;
   size: number;
+  /** Logo pronto em uso (nome em LOGOS); `null` = sem logo ou imagem própria. */
+  logo?: string | null;
+  logoMono?: boolean;
 }
 
 /** Padrões da personalização — o que estiver assim é omitido do link. */
@@ -83,6 +92,10 @@ export function buildShareQuery(s: ShareState): string {
     if (s.caption && s.caption !== SHARE_DEFAULTS.caption) p.set('cap', s.caption);
   }
   if (s.size !== SHARE_DEFAULTS.size) p.set('sz', String(s.size));
+  if (s.logo && LOGOS.some((l) => l.name === s.logo)) {
+    p.set('lg', s.logo);
+    if (s.logoMono === false) p.set('lc', '1'); // colorido; mono é o padrão
+  }
   return p.toString();
 }
 
@@ -127,5 +140,7 @@ export function parseShareQuery(raw: string): ShareParams | null {
     frame: oneOf(p.get('fr'), ['none', 'corners', 'border', 'label'] as const),
     caption: p.get('cap') ?? undefined,
     size: size(p.get('sz')),
+    logo: oneOf(p.get('lg'), LOGOS.map((l) => l.name)),
+    logoMono: p.get('lg') != null ? p.get('lc') !== '1' : undefined,
   };
 }

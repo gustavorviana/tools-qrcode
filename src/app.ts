@@ -439,8 +439,9 @@ export class App {
     this.lastSVG = svg;
     $('qrPreview').innerHTML = svg;
     $('step3').hidden = false;
-    // Aviso de que o logo não é embutido no link compartilhado (só na imagem).
-    $('shareLinkNote').hidden = !this.designer.hasLogo;
+    // Aviso de que uma imagem própria de logo não vai no link (só na imagem).
+    // Só uma imagem própria fica fora do link; logos prontos vão pelo nome.
+    $('shareLinkNote').hidden = !(this.designer.hasLogo && !this.logoName);
     const { moduleCount, version, ecl } = this.designer.info;
     $('qrMeta').textContent =
       `Versão ${version} · correção ${ECL_LETTER[ecl]} · ${moduleCount}×${moduleCount} módulos`;
@@ -810,8 +811,8 @@ export class App {
   /* ---------- Link compartilhável ---------- */
   /**
    * Link compartilhável: `#q=<texto>` mais as opções que fogem do padrão
-   * (correção de erro + personalização). O logo não entra — é uma imagem e
-   * inflaria demais a URL.
+   * (correção de erro + personalização). Um logo pronto entra pelo nome; uma
+   * imagem própria não entra — inflaria demais a URL.
    */
   private buildShareURL(text: string): string {
     const { fg, bg, eyeFrame, eyeCenter } = this.designer.colors;
@@ -823,6 +824,7 @@ export class App {
       eyeFrame: this.designer.eyeFrameShape, eyeCenter: this.designer.eyeCenterShape,
       qrShape: this.designer.qrShape,
       frame: this.frameStyle, caption: this.caption, size: this.exportPx,
+      logo: this.designer.hasLogo ? this.logoName : null, logoMono: this.logoMono,
     });
     // A home é quem abre links compartilhados, qualquer que seja a página de origem.
     return location.origin + '/#' + q;
@@ -865,6 +867,11 @@ export class App {
     this.caption = sp.caption ?? SHARE_DEFAULTS.caption;
     this.designer.frame = createFrame(this.frameStyle, this.caption);
     this.setPngSize(sp.size ?? SHARE_DEFAULTS.size);
+    // Logo pronto do link (depois das cores: o modo mono usa fg/bg do QR).
+    this.logoName = sp.logo ?? null;
+    this.logoMono = sp.logoMono ?? true;
+    this.designer.logo = null;
+    this.applyLogo();
     let svg: string;
     try { svg = await this.designer.toSVG(); }
     catch { return; } // conteúdo inválido/grande demais → segue app normal
