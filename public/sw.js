@@ -2,10 +2,9 @@
    O build injeta a versão (nome do cache) e a lista de páginas do site
    (__PAGES__), para que todas funcionem offline já após a primeira visita. */
 const CACHE_PREFIX = 'qr-utils-';
-// A versão é o commit atual, injetado pelo build.mjs (SHA do Cloudflare Pages ou
-// do git). Cada commit em main gera um sw.js diferente → o navegador detecta a
-// mudança, reinstala o SW e troca o precache. (Em dev sem build, o placeholder
-// permanece literal.)
+// Versão do release + hash do conteúdo (JS, CSS e páginas), injetados pelo
+// build.mjs. Qualquer mudança gera um sw.js diferente → o navegador reinstala o
+// SW e troca o precache. (Em dev sem build, o placeholder permanece literal.)
 const CACHE = CACHE_PREFIX + '__BUILD_HASH__';
 // Cache transitório para a imagem recebida via share_target (não é versionado
 // nem removido na limpeza de versões).

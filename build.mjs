@@ -12,6 +12,7 @@ import { readFile, writeFile, mkdir, copyFile, readdir, rm } from 'node:fs/promi
 import { execSync } from 'node:child_process';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 
 // Versão do build, em ordem de prioridade:
 //  1) env NEW_VERSION — definida pela pipeline (job de bump) no deploy;
@@ -55,6 +56,16 @@ await build({
   outfile: path.join(OUT, 'app.css'),
 });
 
+// Hash do conteúdo do JS+CSS: vai no `?v=` dos assets e no nome do cache do
+// service worker. Assim qualquer mudança real invalida o cache — inclusive entre
+// builds locais com a mesma versão (antes, o SW continuava servindo o CSS velho).
+const hashOf = (...parts) => {
+  const h = createHash('sha256');
+  for (const p of parts) h.update(p);
+  return h.digest('hex').slice(0, 10);
+};
+const assetHash = hashOf(await readFile(path.join(OUT, 'app.js')), await readFile(path.join(OUT, 'app.css')));
+
 // 3) Catálogo + renderizador (TypeScript puro) compilados para um módulo Node
 //    temporário e importados aqui — a mesma fonte que o app usa.
 const siteMod = path.resolve(OUT, '.site.mjs');
@@ -86,8 +97,10 @@ const templates = {
 
 // 5) Páginas: `/` → dist/index.html; `/wifi/` → dist/wifi/index.html.
 const written = [];
+const htmls = [];
 for (const page of site.PAGES) {
-  const html = site.renderPage(page, templates, version).replaceAll('__VERSION__', version);
+  const html = site.renderPage(page, templates, assetHash).replaceAll('__VERSION__', version);
+  htmls.push(html);
   const dir = path.join(OUT, page.path);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, 'index.html'), html);
@@ -110,12 +123,14 @@ await copyFile(
   path.join(OUT, 'zxing_reader.wasm'),
 );
 
-// 9) Service worker: injeta a versão (nome do cache) e a lista de páginas a
-// pré-cachear — cada release troca o SW e o precache.
+// 9) Service worker: injeta versão + hash do conteúdo (nome do cache) e a lista
+// de páginas a pré-cachear — qualquer mudança em JS, CSS ou páginas troca o SW
+// e o precache.
+const cacheId = `${version}-${hashOf(assetHash, ...htmls)}`;
 const sw = (await readFile('public/sw.js', 'utf8'))
-  .replaceAll('__BUILD_HASH__', version)
+  .replaceAll('__BUILD_HASH__', cacheId)
   .replace("'__PAGES__'", written.map((p) => `'${p}'`).join(', '));
 await writeFile(path.join(OUT, 'sw.js'), sw);
 
 const kb = async (f) => Math.round((await readFile(path.join(OUT, f))).length / 1024);
-console.log(`Build OK -> ${written.length} páginas · app.js ${await kb('app.js')}KB · app.css ${await kb('app.css')}KB · v${version}`);
+console.log(`Build OK -> ${written.length} páginas · app.js ${await kb('app.js')}KB · app.css ${await kb('app.css')}KB · v${version} · cache ${cacheId}`);

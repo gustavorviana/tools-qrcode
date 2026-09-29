@@ -145,8 +145,11 @@ function pageIcon(p: SitePage): string {
 /* Página                                                              */
 /* ------------------------------------------------------------------ */
 
-/** Monta o HTML completo de uma página. */
-export function renderPage(p: SitePage, t: Templates, version: string): string {
+/**
+ * Monta o HTML completo de uma página. `assetVersion` vai no `?v=` do app.js e do
+ * app.css (o build passa o hash do conteúdo deles).
+ */
+export function renderPage(p: SitePage, t: Templates, assetVersion: string): string {
   const vars: Record<string, string> = {
     title: p.title,
     description: p.description,
@@ -156,7 +159,7 @@ export function renderPage(p: SitePage, t: Templates, version: string): string {
     label: p.label,
     h1: p.h1,
     intro: p.intro,
-    version,
+    version: assetVersion,
     icon: pageIcon(p),
     logoIcon: iconSvg('qr', 20),
     readIcon: iconSvg('read'),

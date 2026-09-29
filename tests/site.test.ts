@@ -103,12 +103,12 @@ describe('renderPage', () => {
     expect(h).toContain('id="sobre"');
   });
 
-  it('toda página marca in-viana no <head> e tem o "‹ Voltar" do Viana Utils', () => {
+  it('toda página marca in-viana no <head> e tem o "‹ Voltar" do Viana Utils oculto por padrão', () => {
     for (const p of PAGES) {
       const h = html(p.path);
       const head = h.slice(0, h.indexOf('</head>'));
       expect(head, p.path).toContain("if(window.VianaApp)document.documentElement.classList.add('in-viana')");
-      expect(h, p.path).toContain('class="viana-back viana-only" onclick="vianaExit()"');
+      expect(h, p.path).toMatch(/<a class="viana-back" id="vianaBack" href="\/" hidden /);
     }
   });
 

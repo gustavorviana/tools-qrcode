@@ -48,7 +48,7 @@ Não há banco nem back-end. O estado vive em memória na instância `App`. O qu
 3. Renderização das páginas do catálogo (`src/site/render.ts` + `src/templates/`) em `dist/<caminho>/index.html`, trocando `__VERSION__`; geração do `sitemap.xml`.
 4. Cópia de `public/*` (exceto `sw.js`) para `dist/`.
 5. Cópia de `node_modules/zxing-wasm/dist/reader/zxing_reader.wasm` para `dist/`.
-6. Geração de `dist/sw.js` com a versão e a lista de páginas.
+6. Geração de `dist/sw.js` com `<versão>-<hash do conteúdo>` no nome do cache e a lista de páginas. O `?v=` de `app.js`/`app.css` também é o hash do conteúdo deles.
 
 **CI** (PR para `main`): `npm ci` → `typecheck` → `test` → `build`.
 

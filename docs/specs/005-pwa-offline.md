@@ -22,7 +22,7 @@
 ## 3. Modelo de dados
 | Item | Valor |
 |---|---|
-| Cache do app | `qr-utils-<versão>` |
+| Cache do app | `qr-utils-<versão>-<hash>` (hash do conteúdo de JS, CSS e páginas) |
 | Cache de compartilhamento | `qr-utils-share`, chave `shared-image` |
 | Precache | todas as páginas do catálogo (`/`, `/wifi/`, `/ler/`…), `app.js`, `app.css`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `og-image.png`, `screenshot-narrow.png`, `screenshot-wide.png`, `zxing_reader.wasm` |
 | `localStorage` | `installDismissed = '1'` |

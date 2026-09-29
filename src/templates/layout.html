@@ -38,7 +38,8 @@
 <body data-page="{{kind}}" data-type="{{type}}">
   <header class="site-header">
     <div class="site-header-in">
-      <button type="button" class="viana-back viana-only" onclick="vianaExit()" aria-label="Voltar ao Viana Utils">‹ Voltar</button>
+      <!-- Só no app Viana Utils: oculto por padrão; src/viana.ts o exibe quando window.VianaApp existe. -->
+      <a class="viana-back" id="vianaBack" href="/" hidden aria-label="Voltar ao Viana Utils"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Voltar</span></a>
       <a class="brand" href="/" aria-label="QR Utils — início">
         <span class="logo">{{{logoIcon}}}</span>
         <span class="brand-name">QR Utils</span>

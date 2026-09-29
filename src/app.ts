@@ -19,7 +19,7 @@ import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
 import { SHARE_DEFAULTS, PNG_SIZES, buildShareQuery, parseShareQuery } from './qr/share';
 import type { ShareParams } from './qr/share';
-import { setupViana, vianaExit } from './viana';
+import { setupViana, bindVianaBack } from './viana';
 
 /* ---------- Helpers de DOM ---------- */
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
@@ -1146,6 +1146,7 @@ export class App {
   /* ---------- Inicialização ---------- */
   init(): void {
     this.inViana = setupViana(document);
+    bindVianaBack(document.getElementById('vianaBack'));
     this.exposeHandlers();
     this.registerEvents();
     if (this.page === 'gen') {
@@ -1269,7 +1270,6 @@ export class App {
     w.promptInstall = () => this.promptInstall();
     w.exitShared = () => this.exitShared();
     w.backToContent = () => this.backToContent();
-    w.vianaExit = () => vianaExit();
     w.useCurrentLocation = () => this.useCurrentLocation();
     w.loadMap = () => this.loadMap();
     w.mapZoom = (d: number) => this.mapZoom(d);

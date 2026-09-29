@@ -4,9 +4,10 @@
  * site. Opcional: fora do app o objeto não existe e nada muda.
  *
  * Dentro do app, o site esconde tudo que fala em "instalar como app" (lá não há
- * instalação) e mostra "‹ Voltar" no cabeçalho, que chama `VianaApp.exit()`.
- * A classe `in-viana` no <html> é aplicada já no <head> (script inline do
- * layout) para evitar que esses elementos pisquem; aqui ela é garantida de novo.
+ * instalação) e mostra o link "‹ Voltar" do cabeçalho — que vem `hidden` no HTML
+ * e só é exibido aqui, por JS — ligado a `VianaApp.exit()`. A classe `in-viana`
+ * no <html> é aplicada já no <head> (script inline do layout) para evitar que os
+ * elementos de instalação pisquem; aqui ela é garantida de novo.
  */
 
 /** API exposta pelo `bridge.js` do Viana Utils (versão 1). */
@@ -39,4 +40,21 @@ export function setupViana(doc: Pick<Document, 'documentElement'>, w: Pick<Windo
 /** Fecha o app web e volta ao hub do Viana Utils (sem efeito fora do app). */
 export function vianaExit(w: Pick<Window, 'VianaApp'> = window): void {
   w.VianaApp?.exit();
+}
+
+/** O mínimo do elemento "‹ Voltar" que usamos (facilita testar sem DOM). */
+type BackLink = Pick<HTMLElement, 'hidden' | 'addEventListener'>;
+
+/**
+ * Exibe o "‹ Voltar" (oculto por padrão no HTML) e o liga a `VianaApp.exit()`,
+ * só quando dentro do app. Fora dele o link continua `hidden`. Retorna se exibiu.
+ */
+export function bindVianaBack(el: BackLink | null, w: Pick<Window, 'VianaApp'> = window): boolean {
+  if (!el || !inVianaApp(w)) return false;
+  el.hidden = false;
+  el.addEventListener('click', (e: Event) => {
+    e.preventDefault(); // o href="/" é só um fallback; no app, quem sai é o exit()
+    vianaExit(w);
+  });
+  return true;
 }

@@ -404,22 +404,25 @@
     color:var(--muted);font-size:14px;font-weight:600;padding:6px 0;user-select:none}
   .more-types>summary::-webkit-details-marker{display:none}
   .more-types>summary::before,.more-types>summary::after{content:'';flex:1;height:1px;background:var(--line)}
-  .more-types>summary span{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+  .more-types>summary span{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;line-height:20px;
     border:1px solid var(--line);border-radius:999px;background:var(--panel);transition:border-color .15s,color .15s}
-  /* Seta desenhada com bordas (um glifo como ⌄ fica fora do centro vertical). */
-  .more-types>summary span::after{content:'';width:6px;height:6px;border-right:2px solid currentColor;
-    border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+  /* Seta em SVG (viewBox centrado): fica no meio da linha em qualquer fonte. */
+  .more-types .chev{flex:none;display:block;transition:transform .2s}
   .more-types>summary:hover span{border-color:var(--accent);color:var(--accent)}
-  .more-types[open]>summary span::after{transform:translateY(2px) rotate(-135deg)}
+  .more-types[open] .chev{transform:rotate(180deg)}
   .more-types[open]>summary{margin-bottom:14px}
   .more-types>summary:focus-visible span{outline:2px solid var(--accent);outline-offset:2px}
 
   /* Dentro do app Viana Utils (classe in-viana no <html>, ver src/viana.ts):
-     sem menções a instalar como app; "‹ Voltar" ao lado da marca. */
+     sem menções a instalar como app. */
   .viana-only{display:none}
   .in-viana .viana-only{display:revert}
   .in-viana .no-viana{display:none !important}
-  .in-viana .viana-back{display:inline-flex}
-  .viana-back{align-items:center;padding:7px 10px 7px 6px;margin-left:-6px;border:none;background:none;
-    color:var(--accent);font:inherit;font-size:15px;font-weight:600;cursor:pointer;border-radius:8px;white-space:nowrap}
-  .viana-back:hover{background:var(--panel2)}
+  /* "‹ Voltar" (só no app; o JS remove o `hidden`): pílula no padrão dos chips do site. */
+  .viana-back{display:inline-flex;align-items:center;gap:2px;padding:5px 12px 5px 7px;line-height:20px;
+    border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--text);
+    font-size:14px;font-weight:600;white-space:nowrap;transition:border-color .15s,color .15s}
+  .viana-back svg{display:block;flex:none;color:var(--muted);transition:color .15s}
+  .viana-back:hover{text-decoration:none;border-color:var(--accent);color:var(--accent)}
+  .viana-back:hover svg{color:var(--accent)}
+  .viana-back[hidden]{display:none}

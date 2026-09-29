@@ -27,7 +27,7 @@ O QR Utils também é aberto dentro do app Android **Viana Utils**. Lá ele roda
 | ID | Requisito | Prioridade |
 |---|---|---|
 | VIA-F01 | Detectar o app pela existência de `window.VianaApp` | Must |
-| VIA-F02 | Botão "‹ Voltar" à esquerda do ícone do QR Utils, em todas as páginas, que chama `VianaApp.exit()` | Must |
+| VIA-F02 | Link "‹ Voltar" à esquerda do ícone do QR Utils, em todas as páginas, no visual de pílula do site. Vem oculto (`hidden`) no HTML e só é exibido por JS quando `VianaApp` existe; ao tocar, chama `VianaApp.exit()` | Must |
 | VIA-F03 | Esconder no app: banner de instalação, cartão "Instalar como app", o texto "Instale como app" da home e a linha sobre a preferência de instalação na página Privacidade | Must |
 | VIA-F04 | O banner de instalação nunca é exibido no app, nem por código | Must |
 

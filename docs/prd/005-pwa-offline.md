@@ -37,7 +37,7 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 | ID | Requisito |
 |---|---|
 | PWA-N01 | Com o app instalado e sem rede, gerar e ler funcionam. |
-| PWA-N02 | Cada release troca o cache; o HTML é revalidado por ETag a cada navegação. |
+| PWA-N02 | Cada build com conteúdo diferente troca o cache (versão + hash de JS, CSS e páginas); o HTML é revalidado por ETag a cada navegação. |
 | PWA-N03 | Uma falha em um arquivo do precache não impede o cache dos demais. |
 | PWA-N04 | O único dado persistido é a preferência `installDismissed`. |
 | PWA-N05 | Exige HTTPS (ou `localhost`). |
@@ -46,7 +46,7 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 | Configuração | Padrão | Faixa |
 |---|---|---|
 | `installDismissed` (`localStorage`) | ausente | `'1'` após dispensar |
-| Versão do cache | versão do build | `qr-utils-<versão>` |
+| Versão do cache | versão do build + hash do conteúdo | `qr-utils-<versão>-<hash>` |
 
 ## 7. Critérios de aceite
 - [ ] O Lighthouse reconhece o app como instalável.
