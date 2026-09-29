@@ -1,6 +1,6 @@
 /*
  * Catálogo do site — fonte única de verdade para os tipos de QR, as páginas
- * geradas no build (uma por tipo principal + leitor + "mais tipos"), os cards
+ * geradas no build (uma por tipo + home, leitor e privacidade), os cards
  * da home, o sitemap e os dados estruturados. Adicionar uma página = mais uma
  * entrada aqui (e o arquivo de campos em src/templates/fields/<tipo>.html).
  * Puro: sem DOM, usado tanto pelo build (Node) quanto pelo app (navegador).
@@ -25,16 +25,14 @@ export interface QrType {
 /** Pergunta frequente exibida na página e no JSON-LD `FAQPage`. */
 export interface Faq { q: string; a: string }
 
-/** Página gerada no build. */
+/** Página gerada no build (uma por tipo, mais home, leitor e privacidade). */
 export interface SitePage {
   /** Caminho público, com barra final (`/wifi/`). A home é `/`. */
   path: string;
   /** Qual template de corpo usar. */
   kind: 'home' | 'gen' | 'read' | 'privacy';
-  /** Tipo fixo da página de gerador (ausente em `/mais/`, que tem seletor). */
+  /** Tipo da página de gerador. */
   type?: string;
-  /** Tipos oferecidos no seletor (só `/mais/`). */
-  types?: string[];
   /** `<title>` (até ~60 caracteres). */
   title: string;
   /** `meta description` (até ~155 caracteres). */
@@ -98,10 +96,10 @@ const FAQ_FOREVER: Faq = {
   a: 'Não. O código contém o dado final (não passa por um redirecionador), então continua funcionando para sempre, mesmo impresso.',
 };
 
-/** Tipos com página própria, na ordem dos cards da home. */
+/** Tipos em destaque ("Mais usados") na home; os demais vêm em "Outros tipos". */
 export const MAIN_TYPES = ['link', 'wifi', 'whatsapp', 'text', 'vcard', 'email', 'tel', 'instagram'];
 
-/** Página de gerador por tipo principal. */
+/** Página de gerador de cada tipo. */
 const GEN_PAGES: Record<string, Omit<SitePage, 'kind' | 'type'>> = {
   link: {
     path: '/link/', label: 'Link',
@@ -199,10 +197,145 @@ const GEN_PAGES: Record<string, Omit<SitePage, 'kind' | 'type'>> = {
       FAQ_FOREVER,
     ],
   },
+  sms: {
+    path: '/sms/', label: 'SMS',
+    title: 'Gerar QR Code de SMS com mensagem pronta | QR Utils',
+    description: 'Crie um QR Code que abre o app de mensagens com número e texto já preenchidos. Ideal para promoções e cadastros. Grátis e privado.',
+    h1: 'QR Code de SMS',
+    intro: 'Quem escanear abre o SMS com o número e a mensagem prontos — útil para inscrições por palavra-chave, promoções e atendimento.',
+    steps: commonSteps('Digite o número com DDD e, se quiser, a mensagem.'),
+    faq: [
+      { q: 'O SMS é enviado automaticamente?', a: 'Não. O app de mensagens abre com o texto preenchido e a pessoa decide se envia.' },
+      FAQ_PRIVACY,
+    ],
+  },
+  geo: {
+    path: '/local/', label: 'Local',
+    title: 'QR Code de localização: abra um ponto no mapa | QR Utils',
+    description: 'Gere um QR Code com coordenadas que abre o local no app de mapas. Use sua localização atual, escolha no mapa ou busque o endereço.',
+    h1: 'QR Code de localização',
+    intro: 'Indique a entrada de um evento, a porta da loja ou o ponto de encontro: quem escanear abre o local no app de mapas do celular.',
+    steps: commonSteps('Use sua localização atual, escolha o ponto no mapa ou digite latitude e longitude.'),
+    faq: [
+      { q: 'O mapa envia meus dados?', a: 'O mapa é opcional: só ao tocar em "Escolher no mapa" as imagens vêm do OpenStreetMap, e a busca envia apenas o endereço digitado. A localização atual e o QR ficam no seu dispositivo.' },
+      FAQ_FOREVER,
+    ],
+  },
+  event: {
+    path: '/evento/', label: 'Evento',
+    title: 'QR Code de evento para adicionar à agenda | QR Utils',
+    description: 'Crie um QR Code que adiciona um evento (título, data, hora e local) à agenda do celular. Ideal para convites, palestras e reuniões.',
+    h1: 'QR Code de evento',
+    intro: 'Coloque no convite, cartaz ou slide: quem escanear salva o evento na agenda com data, horário e local, sem digitar nada.',
+    steps: commonSteps('Preencha o título, o início e, se quiser, o fim e o local.'),
+    faq: [
+      { q: 'Funciona com Google Agenda e iPhone?', a: 'Sim. O QR usa o formato iCalendar, reconhecido pelas agendas do Android e do iOS.' },
+      FAQ_PRIVACY,
+    ],
+  },
+  facebook: {
+    path: '/facebook/', label: 'Facebook',
+    title: 'QR Code do Facebook para sua página ou perfil | QR Utils',
+    description: 'Gere um QR Code que leva à sua página ou perfil do Facebook, com cores e logo. Grátis, sem cadastro e sem expirar.',
+    h1: 'QR Code do Facebook',
+    intro: 'Leve clientes do balcão, da vitrine ou da embalagem direto para a sua página do Facebook.',
+    steps: commonSteps('Digite o nome de usuário da página ou cole o link.'),
+    faq: [FAQ_FOREVER, FAQ_PRIVACY],
+  },
+  telegram: {
+    path: '/telegram/', label: 'Telegram',
+    title: 'QR Code do Telegram para perfil, grupo ou canal | QR Utils',
+    description: 'Crie um QR Code que abre seu perfil, grupo ou canal no Telegram. Grátis, sem cadastro e gerado no seu navegador.',
+    h1: 'QR Code do Telegram',
+    intro: 'Divulgue seu canal ou grupo: quem escanear abre o Telegram direto nele.',
+    steps: commonSteps('Digite o @usuário (perfil, grupo ou canal público) ou cole o link t.me.'),
+    faq: [FAQ_FOREVER, FAQ_PRIVACY],
+  },
+  youtube: {
+    path: '/youtube/', label: 'YouTube',
+    title: 'QR Code do YouTube para o seu canal | QR Utils',
+    description: 'Gere um QR Code que abre o seu canal do YouTube. Para vídeos específicos, use o link. Grátis, sem cadastro e sem expirar.',
+    h1: 'QR Code do YouTube',
+    intro: 'Ganhe inscritos a partir de material impresso, eventos e embalagens: o QR Code abre o seu canal no app do YouTube.',
+    steps: commonSteps('Digite o @ do canal ou cole o link do canal ou do vídeo.'),
+    faq: [
+      { q: 'Dá para apontar para um vídeo específico?', a: 'Sim. Cole o link completo do vídeo no campo; links completos são usados como estão.' },
+      FAQ_FOREVER,
+    ],
+  },
+  tiktok: {
+    path: '/tiktok/', label: 'TikTok',
+    title: 'QR Code do TikTok para o seu perfil | QR Utils',
+    description: 'Crie um QR Code que leva ao seu perfil do TikTok, com cores e logo. Grátis, sem cadastro e sem expirar.',
+    h1: 'QR Code do TikTok',
+    intro: 'Transforme quem vê seu material físico em seguidor: o QR Code abre o seu perfil no TikTok.',
+    steps: commonSteps('Digite o @usuário ou cole o link do perfil.'),
+    faq: [FAQ_FOREVER, FAQ_PRIVACY],
+  },
+  x: {
+    path: '/x/', label: 'X',
+    title: 'QR Code do X (Twitter) para o seu perfil | QR Utils',
+    description: 'Gere um QR Code que leva ao seu perfil no X (antigo Twitter). Grátis, sem cadastro e gerado no seu navegador.',
+    h1: 'QR Code do X (Twitter)',
+    intro: 'Quem escanear abre o seu perfil no X, pronto para seguir.',
+    steps: commonSteps('Digite o @usuário ou cole o link do perfil.'),
+    faq: [FAQ_FOREVER, FAQ_PRIVACY],
+  },
+  linkedin: {
+    path: '/linkedin/', label: 'LinkedIn',
+    title: 'QR Code do LinkedIn para cartão de visita | QR Utils',
+    description: 'Crie um QR Code que abre o seu perfil do LinkedIn. Ideal para cartões, crachás e apresentações. Grátis e sem cadastro.',
+    h1: 'QR Code do LinkedIn',
+    intro: 'Faça networking mais rápido: coloque o QR Code no cartão, no crachá ou no último slide da apresentação.',
+    steps: commonSteps('Digite o seu usuário do LinkedIn ou cole o link do perfil.'),
+    faq: [FAQ_FOREVER, FAQ_PRIVACY],
+  },
+  paypal: {
+    path: '/paypal/', label: 'PayPal',
+    title: 'QR Code do PayPal.me para receber pagamentos | QR Utils',
+    description: 'Gere um QR Code com o seu link PayPal.me, com valor opcional, para receber pagamentos. Grátis e gerado no seu navegador.',
+    h1: 'QR Code do PayPal',
+    intro: 'Receba pagamentos e doações: quem escanear abre o seu PayPal.me, com o valor já preenchido se você quiser.',
+    steps: commonSteps('Digite o seu usuário do PayPal.me e, se quiser, o valor.'),
+    faq: [
+      { q: 'Preciso ter PayPal.me?', a: 'Sim. O QR Code aponta para paypal.me/seu-usuario; crie o seu link na conta PayPal antes.' },
+      FAQ_PRIVACY,
+    ],
+  },
+  mecard: {
+    path: '/mecard/', label: 'MeCard',
+    title: 'QR Code MeCard: contato compacto | QR Utils',
+    description: 'Gere um QR Code de contato no formato MeCard, mais curto que o vCard e fácil de ler. Nome, telefone e e-mail. Grátis e privado.',
+    h1: 'QR Code MeCard',
+    intro: 'Uma versão compacta do cartão de contato: menos dados, QR Code menor e leitura mais fácil em impressões pequenas.',
+    steps: commonSteps('Preencha nome e, se quiser, telefone e e-mail.'),
+    faq: [
+      { q: 'Qual a diferença para o vCard?', a: 'O MeCard guarda menos campos (nome, telefone, e-mail) e gera um QR menor. Para empresa, cargo e site, use o QR Code de contato (vCard).' },
+      FAQ_PRIVACY,
+    ],
+  },
+  app: {
+    path: '/app/', label: 'App / Loja',
+    title: 'QR Code para baixar app na Play Store ou App Store | QR Utils',
+    description: 'Crie um QR Code que leva à página do seu app na Google Play ou na App Store. Grátis, sem cadastro e sem expirar.',
+    h1: 'QR Code de app',
+    intro: 'Aumente os downloads: o QR Code abre a página do seu app na loja, direto no celular de quem escanear.',
+    steps: commonSteps('Cole o link do app na Google Play ou na App Store.'),
+    faq: [FAQ_FOREVER, FAQ_PRIVACY],
+  },
+  zoom: {
+    path: '/zoom/', label: 'Zoom',
+    title: 'QR Code para entrar em reunião do Zoom | QR Utils',
+    description: 'Gere um QR Code que abre uma reunião do Zoom com ID e senha. Ideal para salas, eventos e convites. Grátis e privado.',
+    h1: 'QR Code do Zoom',
+    intro: 'Coloque na porta da sala ou no convite: quem escanear entra na reunião do Zoom sem digitar ID nem senha.',
+    steps: commonSteps('Digite o ID da reunião e, se houver, a senha.'),
+    faq: [FAQ_PRIVACY, FAQ_FOREVER],
+  },
 };
 
-/** Tipos da página "Mais tipos" (os que não têm página própria). */
-export const MORE_TYPES = TYPES.map((t) => t.id).filter((id) => !MAIN_TYPES.includes(id));
+/** Tipos que não estão em destaque (seção "Outros tipos" da home). */
+export const OTHER_TYPES = TYPES.map((t) => t.id).filter((id) => !MAIN_TYPES.includes(id));
 
 export const PAGES: SitePage[] = [
   {
@@ -212,16 +345,7 @@ export const PAGES: SitePage[] = [
     h1: 'Gerador de QR Code grátis e privado',
     intro: 'Escolha o tipo de QR Code. Tudo é gerado no seu navegador: nada do que você digita sai do seu dispositivo.',
   },
-  ...MAIN_TYPES.map((id): SitePage => ({ ...GEN_PAGES[id], kind: 'gen', type: id })),
-  {
-    path: '/mais/', kind: 'gen', label: 'Mais tipos', types: MORE_TYPES,
-    title: 'QR Code de SMS, evento, local, redes sociais e mais | QR Utils',
-    description: 'Gere QR Code de SMS, localização, evento, Facebook, Telegram, YouTube, TikTok, X, LinkedIn, PayPal, MeCard, app e Zoom. Grátis e privado.',
-    h1: 'Mais tipos de QR Code',
-    intro: 'Escolha o tipo abaixo: SMS, localização, evento, redes sociais, PayPal, apps e reuniões do Zoom.',
-    steps: commonSteps('Escolha o tipo e preencha os campos.'),
-    faq: [FAQ_FOREVER, FAQ_PRIVACY],
-  },
+  ...TYPES.map((t): SitePage => ({ ...GEN_PAGES[t.id], kind: 'gen', type: t.id })),
   {
     path: '/ler/', kind: 'read', label: 'Ler QR Code',
     title: 'Ler QR Code e código de barras online pela câmera ou imagem | QR Utils',
@@ -246,8 +370,9 @@ export const PAGES: SitePage[] = [
 /** URL absoluta de uma página. */
 export const pageUrl = (p: Pick<SitePage, 'path'>): string => SITE_URL + p.path;
 
-/** Página do gerador de um tipo (própria ou `/mais/?tipo=`). */
+/** Caminho da página do gerador de um tipo. */
 export function typeHref(id: string): string {
   const own = PAGES.find((p) => p.kind === 'gen' && p.type === id);
-  return own ? own.path : '/mais/?tipo=' + id;
+  if (!own) throw new Error(`tipo sem página: ${id}`);
+  return own.path;
 }

@@ -45,7 +45,7 @@ src/
   site/
     catalog.ts    Catálogo de tipos e páginas (textos, SEO, cards)
     render.ts     Renderização pura das páginas e do sitemap (usada no build)
-    icons.ts      Ícones dos tipos (cards e seletor)
+    icons.ts      Ícones dos tipos (cards da home e páginas)
   styles.css      Estilos
   main.ts         Ponto de entrada (instancia a App)
   app.ts          Classe App — controlador da interface

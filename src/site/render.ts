@@ -9,7 +9,7 @@
  *  - `<!--@include nome-->` → partial `nome` (templates/partials/nome.html).
  */
 import type { SitePage, Faq } from './catalog';
-import { PAGES, TYPES, MAIN_TYPES, SITE_URL, SITE_NAME, typeById, typeHref, pageUrl } from './catalog';
+import { PAGES, MAIN_TYPES, OTHER_TYPES, SITE_URL, SITE_NAME, typeById, typeHref, pageUrl } from './catalog';
 import { iconSvg } from './icons';
 
 // O build importa só este módulo: reexporta o catálogo de páginas.
@@ -102,32 +102,14 @@ function typeCard(id: string): string {
       </a>`;
 }
 
-/** Chip de tipo secundário (home) — leva a `/mais/?tipo=`. */
-function typeChipLink(id: string): string {
-  const t = typeById(id)!;
-  return `      <a class="type-chip" href="${typeHref(id)}">${iconSvg(t.icon, 18)}<span>${escHtml(t.label)}</span></a>`;
+/** Campos do tipo da página (templates/fields/<tipo>.html). */
+function fieldsFor(id: string, fields: Record<string, string>): string {
+  const f = fields[id];
+  if (!f) throw new Error(`campos inexistentes para o tipo: ${id}`);
+  return f;
 }
 
-/** Seletor de tipos da página `/mais/` (o primeiro vem ativo). */
-function typePicker(types: string[]): string {
-  const btns = types.map((id, i) => {
-    const t = typeById(id)!;
-    return `        <button type="button" class="type-tab${i === 0 ? ' active' : ''}" data-type="${id}" onclick="setType('${id}')">`
-      + `<span class="tt-ico">${iconSvg(t.icon, 20)}</span><span>${escHtml(t.label)}</span></button>`;
-  }).join('\n');
-  return `      <div class="type-tabs" id="typeChips">\n${btns}\n      </div>`;
-}
-
-/** Campos de um ou mais tipos; em listas, só o primeiro fica visível. */
-function fieldsFor(ids: string[], fields: Record<string, string>): string {
-  return ids.map((id, i) => {
-    const f = fields[id];
-    if (!f) throw new Error(`campos inexistentes para o tipo: ${id}`);
-    return i === 0 ? f : f.replace(/(<div class="fgroup" data-fields="[\w-]+")/, '$1 hidden');
-  }).join('\n');
-}
-
-/** "Como fazer" + FAQ + links para outros tipos (texto visível, bom para SEO). */
+/** "Como fazer" + FAQ (texto visível, bom para SEO) + volta ao início. */
 function guide(p: SitePage): string {
   const parts: string[] = [];
   if (p.steps?.length) {
@@ -139,15 +121,8 @@ ${p.steps.map((s, i) => `      <li><span class="how-num">${i + 1}</span><span>${
   </section>`);
   }
   if (p.faq?.length) parts.push(faqBlock(p.faq));
-  if (p.kind === 'gen') {
-    const others = MAIN_TYPES.filter((id) => id !== p.type);
-    parts.push(`  <section class="guide" aria-labelledby="outrosTipos">
-    <h2 id="outrosTipos" class="section-title">Outros tipos de QR Code</h2>
-    <div class="type-chips">
-${others.map(typeChipLink).join('\n')}
-      <a class="type-chip" href="/mais/">${iconSvg('more', 18)}<span>Mais tipos</span></a>
-    </div>
-  </section>`);
+  if (p.kind !== 'home') {
+    parts.push('  <p class="back-home"><a href="/">← Voltar ao início</a></p>');
   }
   return parts.join('\n\n');
 }
@@ -159,19 +134,11 @@ ${faq.map((f) => `    <details class="faq"><summary>${escHtml(f.q)}</summary><p>
   </section>`;
 }
 
-/** Links do rodapé (todas as páginas de gerador + leitor). */
-function footerLinks(): string {
-  return PAGES.filter((p) => p.kind === 'gen' || p.kind === 'read')
-    .map((p) => `        <a href="${p.path}">${escHtml(p.kind === 'gen' && p.type ? 'QR Code de ' + p.label : p.label)}</a>`)
-    .join('\n');
-}
-
 /** Ícone do cabeçalho de uma página. */
 function pageIcon(p: SitePage): string {
   if (p.kind === 'read') return iconSvg('read', 28);
   if (p.kind === 'privacy') return iconSvg('qr', 28);
-  if (p.type) return iconSvg(typeById(p.type)!.icon, 28);
-  return iconSvg('more', 28);
+  return iconSvg(typeById(p.type ?? '')?.icon ?? 'qr', 28);
 }
 
 /* ------------------------------------------------------------------ */
@@ -185,7 +152,7 @@ export function renderPage(p: SitePage, t: Templates, version: string): string {
     description: p.description,
     url: pageUrl(p),
     kind: p.kind,
-    type: p.type ?? (p.types?.[0] ?? ''),
+    type: p.type ?? '',
     label: p.label,
     h1: p.h1,
     intro: p.intro,
@@ -196,17 +163,14 @@ export function renderPage(p: SitePage, t: Templates, version: string): string {
     jsonld: structuredData(p),
     navCreate: p.kind === 'home' || p.kind === 'gen' ? ' aria-current="page"' : '',
     navRead: p.kind === 'read' ? ' aria-current="page"' : '',
-    footerLinks: footerLinks(),
     guide: guide(p),
   };
   if (p.kind === 'home') {
     vars.cards = MAIN_TYPES.map(typeCard).join('\n');
-    vars.moreChips = TYPES.filter((x) => !MAIN_TYPES.includes(x.id)).map((x) => typeChipLink(x.id)).join('\n');
+    vars.otherCards = OTHER_TYPES.map(typeCard).join('\n');
   }
   if (p.kind === 'gen') {
-    const ids = p.types ?? [p.type!];
-    vars.typePicker = p.types ? typePicker(p.types) : '';
-    vars.fields = fieldsFor(ids, t.fields);
+    vars.fields = fieldsFor(p.type!, t.fields);
   }
   const body = fill(t.pages[p.kind], vars, t.partials);
   // O corpo entra por último, para não ser reprocessado como template.

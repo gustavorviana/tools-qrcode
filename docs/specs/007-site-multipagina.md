@@ -13,7 +13,7 @@ O site continua 100% estático. Um catálogo em TypeScript (`catalog.ts`) descre
 ## 2. Módulos e dependências
 | Módulo | Papel | Depende de |
 |---|---|---|
-| `src/site/catalog.ts` | `TYPES`, `MAIN_TYPES`, `MORE_TYPES`, `PAGES`, `typeHref`, `pageUrl` | — |
+| `src/site/catalog.ts` | `TYPES`, `MAIN_TYPES`, `OTHER_TYPES`, `PAGES`, `typeHref`, `pageUrl` | — |
 | `src/site/icons.ts` | `iconSvg(name, size)` (marcas, glifos dos logos, glifos próprios) | `src/qr/logos.ts` |
 | `src/site/render.ts` | `fill`, `renderPage`, `renderSitemap`, `structuredData`, `escHtml` (puros) | `catalog`, `icons` |
 | `src/templates/layout.html` | head (SEO), cabeçalho, `<main>`, rodapé, overlays, `<script src="/app.js">` | — |
@@ -29,10 +29,9 @@ Não foi adicionada nenhuma dependência nova.
 interface QrType { id: string; label: string; desc: string; icon: string }
 interface Faq { q: string; a: string }
 interface SitePage {
-  path: string;                        // '/', '/wifi/', '/mais/'…
+  path: string;                        // '/', '/wifi/', '/zoom/'…
   kind: 'home' | 'gen' | 'read' | 'privacy';
   type?: string;                       // página de tipo
-  types?: string[];                    // /mais/ (seletor)
   title: string; description: string; label: string;
   h1: string; intro: string; steps?: string[]; faq?: Faq[];
 }
@@ -52,8 +51,8 @@ interface Templates { layout; pages: Record<kind, string>; partials: Record<stri
 | Caminho | Página |
 |---|---|
 | `/` | home |
-| `/link/`, `/wifi/`, `/whatsapp/`, `/texto/`, `/contato/`, `/email/`, `/telefone/`, `/instagram/` | tipos principais |
-| `/mais/` | demais tipos (aceita `?tipo=`) |
+| `/link/`, `/wifi/`, `/whatsapp/`, `/texto/`, `/contato/`, `/email/`, `/telefone/`, `/instagram/` | tipos em destaque |
+| `/sms/`, `/local/`, `/evento/`, `/facebook/`, `/telegram/`, `/youtube/`, `/tiktok/`, `/x/`, `/linkedin/`, `/paypal/`, `/mecard/`, `/app/`, `/zoom/` | outros tipos |
 | `/ler/` | leitor |
 | `/privacidade/` | privacidade |
 
@@ -65,7 +64,7 @@ function renderPage(p: SitePage, t: Templates, version: string): string
 function renderSitemap(lastmod: string): string
 function structuredData(p: SitePage): string   // <script type="application/ld+json">
 function fill(tpl: string, vars: Record<string,string>, partials?: Record<string,string>): string
-function typeHref(id: string): string          // '/wifi/' ou '/mais/?tipo=sms'
+function typeHref(id: string): string          // '/wifi/', '/zoom/'…
 function iconSvg(name: string, size?: number): string
 ```
 No `App` (`src/app.ts`):
@@ -84,10 +83,10 @@ No `App` (`src/app.ts`):
 5. Copia `public/` e o `.wasm`.
 6. `sw.js` recebe a versão e a lista de páginas no lugar de `'__PAGES__'`.
 
-**Montagem de uma página de tipo:** `generator.html` recebe os campos daquele tipo, visíveis, e o partial `customize` + `download`, mais o `guide` (Como fazer, FAQ, outros tipos). Em `/mais/`, entram o seletor `#typeChips` e os campos de todos os `MORE_TYPES`, com `hidden` em todos menos o primeiro.
+**Montagem de uma página de tipo:** `generator.html` recebe os campos daquele tipo e os partials `customize` + `download`, mais o `guide` (Como fazer, FAQ e "← Voltar ao início").
 
 **Navegador**
-- `init()` → se `gen`: monta os controles de forma e logo, define `currentType` por `data-type` e, em `/mais/`, aplica `?tipo=` se for válido.
+- `init()` → se `gen`: monta os controles de forma e logo e define `currentType` por `data-type`.
 - Se `home`: `initShared()` e escuta `hashchange`.
 
 **Compartilhar:** a URL gerada é sempre `origin + '/#' + query`, a partir de qualquer página.
@@ -101,7 +100,7 @@ No `App` (`src/app.ts`):
   - `.read-card` escuro;
   - "Como funciona" (`.how-steps`);
   - "Sobre" (`.pillars` + cards de privacidade, instalar, créditos, projeto).
-- **Página de tipo:** breadcrumb, `.page-head` (ícone + H1 + lead), etapas 1/2/3 como antes, "Como fazer", FAQ (`<details class="faq">`) e "Outros tipos".
+- **Página de tipo:** breadcrumb, `.page-head` (ícone + H1 + lead), etapas 1/2/3 como antes, "Como fazer", FAQ (`<details class="faq">`) e o link "← Voltar ao início". Não lista outros tipos.
 - **Rodapé:** links para todas as páginas de tipo e para o leitor, privacidade e código aberto.
 
 ## 7. Permissões e manifest
@@ -115,7 +114,6 @@ No `App` (`src/app.ts`):
 | Tipo sem `fields/<tipo>.html` | build falha (`campos inexistentes para o tipo`) |
 | Partial inexistente | build falha |
 | Marcador sem valor | vira string vazia |
-| `?tipo=` inválido ou ausente em `/mais/` | fica o primeiro tipo |
 | `/?view=read` / `?view=about` | redireciona para `/ler/` / `/#sobre` |
 | `/#q=…` em outra página que não a home | ignorado (os links gerados sempre apontam para `/`) |
 | Offline numa página nunca visitada | o precache cobre todas as páginas do catálogo; sem cache, cai na `/` |
@@ -124,11 +122,11 @@ No `App` (`src/app.ts`):
 ## 9. Testes
 | Teste | Cobre |
 |---|---|
-| `site.test.ts` › catálogo (caminhos, campos por tipo, `typeHref`, limites de título/descrição) | WEB-F03, WEB-F04, WEB-N03 |
+| `site.test.ts` › catálogo (caminhos, campos por tipo, `typeHref`, limites de título/descrição) | WEB-F03, WEB-N03 |
 | `site.test.ts` › `fill`, `escHtml` | WEB-N07 |
 | `site.test.ts` › `renderPage` (título/canonical/H1 únicos, campos por página, home, sem script externo) | WEB-F01 a WEB-F05, WEB-N02, WEB-N04 |
 | `site.test.ts` › JSON-LD e sitemap | WEB-F09, WEB-N03 |
-| Playwright (roteiro): fluxo Wi-Fi, `/#q=`, `?view=read`, `/mais/?tipo=`, offline, gerar → baixar → ler | WEB-F06, WEB-F10, WEB-N01, WEB-N05 |
+| Playwright (roteiro): fluxo Wi-Fi, `/#q=`, `?view=read`, `/sms/`, offline em `/zoom/`, gerar → baixar → ler | WEB-F06, WEB-F10, WEB-N01, WEB-N05 |
 
 ## 10. Plano de implementação
 Concluído em `1c46222`:
@@ -144,5 +142,5 @@ Concluído em `1c46222`:
 - **Partials no build vs. HTML repetido à mão:** uma fonte por trecho; a repetição fica só no `dist/`.
 - **`app.js` compartilhado vs. JS inline por página:** o bundle tem cerca de 267 KB. Inline, ele seria baixado de novo a cada página; compartilhado, fica em cache. Isso troca o princípio "arquivo único" por "tudo na própria origem" (APP-N05).
 - **Templating próprio (≈40 linhas) vs. biblioteca (Handlebars, Eta):** o necessário é pouco; não há dependência nova.
-- **Páginas só para os principais + `/mais/`:** foco de SEO nos tipos com mais busca, sem páginas rasas para tipos raros.
+- **Uma página por tipo, sem `/mais/` nem "Outros tipos" nas páginas:** cada tipo é uma porta de entrada própria no Google, e as páginas ficam focadas (só o caminho de volta ao início). A lista de tipos vive só na home; o rodapé não repete os links (o `sitemap.xml` já os expõe ao Google).
 - **URLs curtas (`/wifi/`):** escolha do produto; o termo de busca vai no título e no H1.

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { PAGES, TYPES, MAIN_TYPES, MORE_TYPES, SITE_URL, typeHref } from '../src/site/catalog';
+import { PAGES, TYPES, MAIN_TYPES, OTHER_TYPES, SITE_URL, typeHref } from '../src/site/catalog';
 import { renderPage, renderSitemap, fill, escHtml, structuredData } from '../src/site/render';
 import type { Templates } from '../src/site/render';
 
@@ -25,17 +25,16 @@ describe('catálogo do site', () => {
     paths.forEach((p) => expect(p).toMatch(/^\/([a-z-]+\/)?$/));
   });
 
-  it('todo tipo tem arquivo de campos e aparece numa página de gerador', () => {
-    const offered = PAGES.flatMap((p) => p.types ?? (p.type ? [p.type] : []));
+  it('todo tipo tem arquivo de campos e exatamente uma página própria', () => {
     for (const t of TYPES) {
       expect(templates.fields[t.id], t.id).toBeTruthy();
-      expect(offered).toContain(t.id);
+      expect(PAGES.filter((p) => p.type === t.id), t.id).toHaveLength(1);
+      expect(typeHref(t.id)).toMatch(/^\/[a-z-]+\/$/);
     }
   });
 
-  it('principais têm página própria; os demais vão para /mais/?tipo=', () => {
-    MAIN_TYPES.forEach((id) => expect(typeHref(id)).not.toContain('?'));
-    MORE_TYPES.forEach((id) => expect(typeHref(id)).toBe('/mais/?tipo=' + id));
+  it('não existe mais a página /mais/', () => {
+    expect(PAGES.find((p) => p.path === '/mais/')).toBeUndefined();
   });
 
   it('títulos e descrições cabem nos limites usuais de SEO', () => {
@@ -74,25 +73,29 @@ describe('renderPage', () => {
   });
 
   it('página de tipo traz só os campos daquele tipo, visíveis', () => {
-    const h = html('/wifi/');
-    expect(h).toContain('data-page="gen" data-type="wifi"');
-    expect(h).toContain('data-fields="wifi">');
-    expect(h).not.toContain('data-fields="whatsapp"');
-    expect(h).not.toContain('id="typeChips"');
+    for (const t of TYPES) {
+      const h = html(typeHref(t.id));
+      expect(h).toContain(`data-page="gen" data-type="${t.id}"`);
+      expect(h).toContain(`data-fields="${t.id}">`);
+      expect(h.match(/data-fields="/g), t.id).toHaveLength(1);
+    }
   });
 
-  it('"Mais tipos" traz seletor e campos de todos os tipos secundários, só o 1º visível', () => {
-    const h = html('/mais/');
-    expect(h).toContain('id="typeChips"');
-    MORE_TYPES.forEach((id, i) => {
-      expect(h).toContain(`data-type="${id}"`);
-      expect(h).toContain(`data-fields="${id}"${i === 0 ? '>' : ' hidden>'}`);
-    });
+  it('páginas internas não listam outros tipos: só um caminho para o início', () => {
+    for (const p of PAGES.filter((x) => x.kind !== 'home')) {
+      const h = html(p.path);
+      expect(h, p.path).not.toContain('Outros tipos');
+      expect(h, p.path).not.toContain('class="type-card"');
+      for (const t of TYPES) {
+        if (t.id !== p.type) expect(h, `${p.path} → ${t.id}`).not.toContain(`href="${typeHref(t.id)}"`);
+      }
+    }
+    expect(html('/wifi/')).toContain('Voltar ao início');
   });
 
-  it('a home tem um card por tipo principal, a visualização de link compartilhado e o #sobre', () => {
+  it('a home tem um card por tipo, a visualização de link compartilhado e o #sobre', () => {
     const h = html('/');
-    MAIN_TYPES.forEach((id) => expect(h).toContain(`href="${typeHref(id)}"`));
+    [...MAIN_TYPES, ...OTHER_TYPES].forEach((id) => expect(h).toContain(`<a class="type-card" href="${typeHref(id)}">`));
     expect(h).toContain('id="view-share"');
     expect(h).toContain('id="homeMain"');
     expect(h).toContain('id="sobre"');

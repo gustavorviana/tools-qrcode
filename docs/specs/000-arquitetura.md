@@ -63,7 +63,7 @@ Páginas estáticas, identificadas por `<body data-page>` ([SPEC-007](007-site-m
 | Página | Conteúdo |
 |---|---|
 | `home` (`/`) | cards dos tipos, Como funciona, Sobre (créditos, instalar, repositório) e o QR compartilhado (SPEC-003) |
-| `gen` (`/wifi/`, `/mais/`…) | geração (SPEC-001, 002, 003) |
+| `gen` (`/wifi/`, `/zoom/`… — uma por tipo) | geração (SPEC-001, 002, 003) |
 | `read` (`/ler/`) | leitura e formatos (SPEC-004) |
 | `privacy` (`/privacidade/`) | privacidade (SPEC-006) |
 

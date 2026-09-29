@@ -291,20 +291,6 @@ export class App {
     if (el) window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - 12) });
   }
 
-  /** Troca o tipo no seletor da página "Mais tipos". */
-  setType(t: string): void {
-    this.currentType = t;
-    document.querySelectorAll('#typeChips .type-tab').forEach((c) =>
-      c.classList.toggle('active', (c as HTMLElement).dataset.type === t));
-    document.querySelectorAll('.fgroup').forEach((g) => {
-      (g as HTMLElement).hidden = (g as HTMLElement).dataset.fields !== t;
-    });
-    $('genPreview').hidden = true;
-    $('genErr').textContent = '';
-    // Troca de tipo não gera QR — apenas limpa a prévia anterior.
-    $('step3').hidden = true;
-  }
-
   toggleWifiPass(): void {
     const open = val('f_sec') === 'nopass';
     $i('f_pass').disabled = open;
@@ -1159,10 +1145,8 @@ export class App {
     if (this.page === 'gen') {
       this.buildShapeControls();
       this.buildLogoControls();
+      // Cada página de gerador tem um tipo fixo (ex.: /wifi/ → `wifi`).
       this.currentType = document.body.dataset.type || this.currentType;
-      // Página "Mais tipos": `?tipo=sms` pré-seleciona (só o tipo; nunca conteúdo).
-      const t = new URLSearchParams(location.search).get('tipo');
-      if (t && document.querySelector(`#typeChips [data-type="${CSS.escape(t)}"]`)) this.setType(t);
     }
 
     if ('serviceWorker' in navigator) {
@@ -1262,7 +1246,6 @@ export class App {
   /** Expõe ao `window` os handlers usados pelos atributos onclick do HTML. */
   private exposeHandlers(): void {
     const w = window as unknown as Record<string, unknown>;
-    w.setType = (t: string) => this.setType(t);
     w.toggleWifiPass = () => this.toggleWifiPass();
     w.showFormatted = () => this.showFormatted();
     w.doGenerate = () => this.doGenerate();

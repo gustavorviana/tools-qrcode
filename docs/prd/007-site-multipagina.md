@@ -21,20 +21,19 @@
 ## 3. Cenários de uso
 - Busco "qr code wifi" no Google, caio direto em `/wifi/`, preencho a rede e baixo o QR sem passar pela home.
 - Abro o site pela primeira vez, vejo os tipos em cards, escolho "WhatsApp" e entendo pela página o que vai acontecer.
-- Quero um tipo menos comum (Zoom). Na home, toco no chip "Zoom" e caio em `/mais/?tipo=zoom` já com o tipo selecionado.
+- Quero um tipo menos comum (Zoom). Na home, toco no card "Zoom" em "Outros tipos" e caio em `/zoom/`.
 - Recebo um link compartilhado antigo (`/#q=…`) e ele continua abrindo o QR.
 
 ## 4. Requisitos funcionais
 | ID | Requisito | Prioridade |
 |---|---|---|
-| WEB-F01 | Home com H1, cards dos 8 tipos principais (ícone, nome, descrição, seta), chips dos demais tipos e card para o leitor | Must |
+| WEB-F01 | Home com H1, cards de todos os tipos (ícone, nome, descrição, seta) em duas seções — "Mais usados" (8) e "Outros tipos" (13) — e card para o leitor | Must |
 | WEB-F02 | Home com as seções "Como funciona" (3 passos) e "Sobre" (`#sobre`) | Must |
-| WEB-F03 | Uma página por tipo principal: `/link/`, `/wifi/`, `/whatsapp/`, `/texto/`, `/contato/`, `/email/`, `/telefone/`, `/instagram/` | Must |
-| WEB-F04 | Página `/mais/` com seletor para os outros 13 tipos; `?tipo=<id>` pré-seleciona o tipo | Should |
+| WEB-F03 | Uma página por tipo (21): `/link/`, `/wifi/`, `/whatsapp/`, `/texto/`, `/contato/`, `/email/`, `/telefone/`, `/instagram/`, `/sms/`, `/local/`, `/evento/`, `/facebook/`, `/telegram/`, `/youtube/`, `/tiktok/`, `/x/`, `/linkedin/`, `/paypal/`, `/mecard/`, `/app/`, `/zoom/` | Must |
 | WEB-F05 | Páginas `/ler/` (leitor) e `/privacidade/` | Must |
 | WEB-F06 | Em cada página de tipo, a personalização e o download acontecem na própria página | Must |
-| WEB-F07 | Cabeçalho fixo com Criar, Ler QR Code e Sobre; rodapé com links para todas as páginas de tipo | Should |
-| WEB-F08 | Cada página tem "Como fazer", perguntas frequentes e links para os outros tipos | Should |
+| WEB-F07 | Cabeçalho fixo com Criar, Ler QR Code e Sobre; rodapé só com Privacidade e Código aberto | Should |
+| WEB-F08 | Cada página de tipo tem "Como fazer", perguntas frequentes e só um caminho de volta (breadcrumb e "Voltar ao início"); não lista outros tipos | Should |
 | WEB-F09 | `sitemap.xml` com todas as páginas | Must |
 | WEB-F10 | Links e atalhos antigos continuam funcionando: `/#q=…` abre o QR compartilhado; `?view=read` leva a `/ler/` | Must |
 
@@ -52,8 +51,7 @@
 ## 6. Configurações
 | Configuração | Padrão | Faixa |
 |---|---|---|
-| Tipos com página própria (`MAIN_TYPES`) | link, wifi, whatsapp, text, vcard, email, tel, instagram | qualquer tipo de `TYPES` |
-| Tipo inicial em `/mais/` | o primeiro de `MORE_TYPES` (SMS) | `?tipo=` com um tipo de `MORE_TYPES` |
+| Tipos em destaque na home (`MAIN_TYPES`) | link, wifi, whatsapp, text, vcard, email, tel, instagram | qualquer tipo de `TYPES` (os demais vão para "Outros tipos") |
 
 ## 7. Critérios de aceite
 - [ ] `npm run build` gera `dist/index.html` e uma pasta por página do catálogo.
@@ -61,11 +59,11 @@
 - [ ] Em `/wifi/`: preencher, gerar, personalizar e baixar o PNG, sem sair da página.
 - [ ] Nenhuma requisição fora da origem no fluxo acima (Playwright).
 - [ ] `/#q=https%3A%2F%2Fexemplo.com` mostra o QR compartilhado; `/?view=read` vai para `/ler/`.
-- [ ] Offline, após visitar `/`, as páginas `/wifi/`, `/ler/` e `/mais/?tipo=sms` abrem e geram o QR.
+- [ ] Offline, após visitar `/`, as páginas `/wifi/`, `/zoom/` e `/ler/` abrem e geram o QR.
 - [ ] O Google Search Console aceita o novo `sitemap.xml`.
 
 ## 8. Questões em aberto
-- **Quais tipos merecem página própria?** Provisório: os 8 de `MAIN_TYPES`. Reavaliar com os dados do Search Console; promover um tipo é só mover o id para `MAIN_TYPES` e escrever os textos no catálogo.
+- **Quais tipos ficam em destaque na home?** Provisório: os 8 de `MAIN_TYPES`. Reavaliar com os dados do Search Console; trocar é só mudar a lista.
 - **Página de Pix (gerar):** candidata forte a página própria. Depende de implementar a geração de BR Code.
 - **Versão em inglês (`/en/`):** fora do escopo desta fase.
 - **Domínio próprio:** manter `qr.tools.grviana.com.br` por enquanto.
