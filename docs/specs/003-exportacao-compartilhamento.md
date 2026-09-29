@@ -17,7 +17,7 @@
 - `designer.ts`: `toCanvas(px)`, `toSVGBlob()`.
 - `raster.ts`: `rasterizeSVG(svg, w, h)`, puro.
 - `share.ts`: `buildShareQuery`, `parseShareQuery`, `SHARE_DEFAULTS`, `PNG_SIZES`; valida formas contra os registros de `shapes.ts`.
-- `app.ts`: `downloadPNG`, `downloadSVG`, `shareQR`, `shareLink`, `setPngSize`, `openModal`, `closeModal`, `renderShared`, `initShared`, `exitShared`, `resetCustomization`.
+- `app.ts`: `downloadPNG`, `downloadSVG`, `shareQR`, `shareLink`, `setPngSize`, `openModal`, `closeModal`, `renderShared`, `initShared`, `exitShared`, `toggleShareView`.
 
 ## 3. Modelo de dados
 Link: `<origin><pathname>#q=<texto>&<opções>`. Também é aceito em `?q=` na query.
@@ -64,9 +64,9 @@ function parseShareQuery(raw: string): ShareParams | null
 
 **Compartilhar link:** `buildShareURL(lastText)` → `navigator.share({ url })`. Se não existir ou falhar (exceto `AbortError`), copia para a área de transferência com o toast "Link copiado!".
 
-**Abrir link:** em `init()` e em `hashchange`, `parseShareQuery(hash || search)`. Se válido, `renderShared()` aplica as opções (ou o padrão), gera o SVG, injeta em `#sharePreview`, chama `renderDecoded` em `#shareDetail`, esconde as abas e ativa `view-share`.
+**Abrir link (home):** em `init()` e em `hashchange`, `parseShareQuery(hash || search)`. Se válido, `renderShared()` aplica as opções (ou o padrão), gera o SVG, injeta em `#sharePreview`, chama `renderDecoded` em `#shareDetail`, esconde `#homeMain` e ativa `view-share`. O link é sempre gerado como `/#q=…`, de qualquer página.
 
-**Sair do link:** `exitShared()` limpa o hash (`replaceState`), os campos e o estado; chama `resetCustomization()` e abre a aba Gerar.
+**Sair do link:** `exitShared()` navega para `/` (página limpa, sem o `#q=…`), o que também descarta as opções do link.
 
 ## 6. UI
 - Etapa 3 `#step3`: prévia clicável, `#pngSize`, "Baixar PNG", "Baixar SVG", "Compartilhar imagem", "Compartilhar link do QR", o aviso `#shareLinkNote` (só com logo) e `#qrMeta`.

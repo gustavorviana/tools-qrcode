@@ -27,7 +27,7 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 | PWA-F01 | Manifesto com nome, ícones (incluindo maskable), screenshots e `display: standalone` | Must |
 | PWA-F02 | Barra de instalação no Android/desktop (prompt nativo) e instruções no iOS | Should |
 | PWA-F03 | Dispensar a barra de instalação e lembrar a escolha | Should |
-| PWA-F04 | Cartão "Instalar como app" na aba Sobre, oculto quando já instalado | Could |
+| PWA-F04 | Cartão "Instalar como app" na seção Sobre da home, oculto quando já instalado | Could |
 | PWA-F05 | Atalhos "Gerar" e "Ler" no ícone do app | Could |
 | PWA-F06 | Abrir imagens com o app (`file_handlers`) e ler o código | Could |
 | PWA-F07 | Receber imagens compartilhadas por outros apps (`share_target`) e ler o código | Should |
@@ -51,7 +51,7 @@ Uma ferramenta de QR é usada em momentos pontuais, muitas vezes sem internet bo
 ## 7. Critérios de aceite
 - [ ] O Lighthouse reconhece o app como instalável.
 - [ ] Após instalar e desligar a rede, o app abre, gera um QR e lê um código de barras por imagem.
-- [ ] O atalho "Ler" abre direto na aba Ler.
+- [ ] O atalho "Ler" abre direto em `/ler/`.
 - [ ] Compartilhar uma imagem da galeria para o app mostra o conteúdo lido.
 - [ ] Após um deploy, recarregar o app mostra a nova versão.
 - [ ] Após dispensar a barra, ela não volta em novas visitas.

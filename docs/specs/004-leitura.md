@@ -99,7 +99,7 @@ function parseDecoded(raw: string): Decoded
 | Pix com CRC inválido | linha "CRC inválido — código possivelmente corrompido" |
 | Pix dinâmico | URL não exibida nem acessada; aviso de dados pessoais |
 | Moeda do Pix ≠ 986 | valor sem formatação BRL e linha "Moeda" |
-| Sair da aba Ler | `stopCamera()` |
+| Sair de `/ler/` | a câmera é liberada com a página |
 
 ## 9. Testes
 | Teste | Cobre |

@@ -24,7 +24,7 @@
 |---|---|
 | Cache do app | `qr-utils-<versão>` |
 | Cache de compartilhamento | `qr-utils-share`, chave `shared-image` |
-| Precache | `./`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `og-image.png`, `screenshot-narrow.png`, `screenshot-wide.png`, `zxing_reader.wasm` |
+| Precache | todas as páginas do catálogo (`/`, `/wifi/`, `/ler/`…), `app.js`, `app.css`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `og-image.png`, `screenshot-narrow.png`, `screenshot-wide.png`, `zxing_reader.wasm` |
 | `localStorage` | `installDismissed = '1'` |
 
 Manifesto: `id "/"`, `start_url "./"`, `scope "./"`, `display standalone`, `orientation portrait`, `lang pt-BR`, `categories [utilities, productivity]`, `launch_handler.client_mode navigate-existing`, `edge_side_panel.preferred_width 400`.
@@ -49,10 +49,10 @@ promptInstall(): void
 
 **fetch**
 1. Outra origem: não intercepta.
-2. `POST …/share-target`: lê o `formData`, guarda o campo `image` em `qr-utils-share/shared-image` e responde `303` para `./?share-target=1`.
+2. `POST …/share-target`: lê o `formData`, guarda o campo `image` em `qr-utils-share/shared-image` e responde `303` para `/ler/?share-target=1`.
 3. Não-GET: não intercepta.
-4. Navegação: `fetch(req, { cache: 'no-cache' })`, guarda a cópia em `./` e retorna. Offline, usa `./` ou `./index.html` do cache e, na falta deles, `Response.error()`.
-5. Demais: cache primeiro. Na falta, busca, guarda se `ok` e retorna.
+4. Navegação: `fetch(req, { cache: 'no-cache' })`, guarda a cópia sob a chave da página (`pageKey`: caminho sem query, com barra final) e retorna. Offline, usa essa chave ou `/` do cache e, na falta deles, `Response.error()`.
+5. Demais: cache primeiro (ignorando a query `?v=`). Na falta, busca, guarda se `ok` e retorna.
 
 **Inicialização (`handleLaunch`)**
 - `?view=gen|read|about` abre a aba.
@@ -68,7 +68,7 @@ promptInstall(): void
 
 ## 6. UI
 - `#installBar` (texto + Instalar + ✕).
-- Cartão "Instalar como app" na aba Sobre, com a dica para iOS.
+- Cartão "Instalar como app" na seção Sobre da home, com a dica para iOS.
 - Parâmetros de URL: `?view=`, `?share-target=1`.
 
 ## 7. Permissões e manifest
@@ -86,7 +86,7 @@ Nenhuma permissão é pedida para instalar.
 | Situação | Comportamento |
 |---|---|
 | Um asset do precache dá 404 | os demais são cacheados |
-| `./index.html` redireciona (301) | não é precacheado; usa `./` |
+| `…/index.html` redireciona (301) | não é precacheado; as páginas usam a URL com barra final |
 | Offline sem cache | `Response.error()` |
 | Share target sem imagem ou ilegível | redireciona mesmo assim; a página ignora |
 | `localStorage` bloqueado | exceção ignorada; a barra pode reaparecer |

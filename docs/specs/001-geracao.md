@@ -64,7 +64,7 @@ function maskPhoneWa(v: string): string
 
 ## 5. Fluxos
 **Gerar**
-1. `setType(t)` ativa a aba e o grupo de campos, e esconde a prévia e a etapa 3.
+1. O tipo vem da página (`<body data-type>`, ex.: `/wifi/`); em `/mais/`, `setType(t)` troca o tipo pelo seletor (ou por `?tipo=`), ativa o grupo de campos e esconde a prévia e a etapa 3.
 2. `doGenerate()` chama `regenerate()`: `buildContent()` monta o payload; se vier vazio, a etapa 3 é ocultada.
 3. `designer.text = payload`, `designer.ecl = effectiveEcl()` (SPEC-002), `renderPreview()`.
 4. `renderPreview()` incrementa `renderSeq`, gera o SVG e descarta o resultado se outro render tiver começado depois. Injeta o SVG em `#qrPreview` e preenche `#qrMeta`.
