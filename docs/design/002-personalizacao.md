@@ -1,11 +1,11 @@
-# SPEC-002 — Personalização do QR Code
+# DESIGN-002 — Personalização do QR Code
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-002](../prd/002-personalizacao.md) |
-| **Módulos** | `src/qr/designer.ts`, `src/qr/generator.ts`, `src/qr/shapes.ts`, `src/qr/customRenderer.ts`, `src/qr/matrix.ts`, `src/qr/logos.ts`, `src/qr/frames.ts`, `src/qr/caption.ts`, `src/app.ts` |
-| **Atualizado em** | 2026-09-29 |
+| **Spec** | [SPEC-002](../spec/002-personalizacao.md) |
+| **Módulos** | `src/qr/designer.ts`, `src/qr/generator.ts`, `src/qr/shapes.ts`, `src/qr/customRenderer.ts`, `src/qr/matrix.ts`, `src/qr/logos.ts`, `src/qr/frames.ts`, `src/qr/caption.ts`, `src/qr/ecl.ts`, `src/app.ts` |
+| **Atualizado em** | 2026-09-30 |
 
 ## 1. Resumo
 O `QrGenerator` codifica sempre com a `qr-code-styling` e escolhe um de dois backends de desenho:
@@ -68,16 +68,16 @@ No `App`: `setColor`, `setHex`, `applyPreset`, `setBgTransparent`, `setEyeColor`
 4. Se `custom`: `renderCustomQr(extractMatrix(qr), …)` e descarta o SVG da lib. Se não, usa o SVG da lib sem o prólogo XML.
 5. `Frame.apply(qr, colors)` produz o SVG final.
 
-**Correção de erro efetiva (`effectiveEcl`)**
+**Correção de erro efetiva (`resolveEcl` em `src/qr/ecl.ts`, chamada por `effectiveEcl`)**
 - Automático: `MEDIUM`; `QUARTILE` se o corpo ou o centro forem `custom`; `HIGH` se houver logo.
-- Manual: respeita a escolha, mas com logo e nível L ou M sobe para `QUARTILE`.
+- Manual: respeita a escolha, mas com logo e nível L ou M sobe para `QUARTILE` e devolve `raised: true`, que exibe o aviso `#eclNote` (CUS-F14).
 
 **Logo:** um logo pronto vira `logoDataUrl(logoSvg(def, { mono, fg, bg }))`. No modo mono, é refeito a cada mudança de `fg`, `bg` ou transparência. Imagem própria: `FileReader.readAsDataURL`, que desmarca o logo pronto.
 
 **Ao vivo:** todo setter chama `liveUpdate()`, que só age se `live` estiver ligado e aplica debounce de 120 ms antes de `regenerate()`.
 
 ## 6. UI
-`<details class="accordion">` "Personalizar (opcional)", fechado por padrão, com as abas `#custTabs`:
+`<details class="accordion">` "Personalizar (opcional)", fechado por padrão, com as abas `#custTabs`. A correção de erro (`#genEcl`) e o aviso `#eclNote` ficam na etapa Baixar, dentro do divisor "Avançado" ([DESIGN-003](003-exportacao-compartilhamento.md)), onde a pessoa vê o QR e o aviso juntos:
 
 | Aba | Controles |
 |---|---|
@@ -85,7 +85,6 @@ No `App`: `setColor`, `setHex`, `applyPreset`, `setBgTransparent`, `setEyeColor`
 | Formas | `#shapeOpts`, `#eyeFrameOpts`, `#eyeCenterOpts` (gerados dos registros com prévia SVG), `#qrShapeOpts` |
 | Logo | `#logoMono`, `#logoPresets` (gerado de `LOGOS`), "Escolher imagem", "Remover logo" |
 | Moldura | `#frameOpts`, `#c_caption` (visível se moldura ≠ nenhuma) |
-| Avançado | `#genEcl` |
 
 ## 7. Permissões e manifest
 Nenhuma. A imagem do logo é escolhida por `<input type="file" accept="image/*">`.
@@ -98,7 +97,7 @@ Nenhuma. A imagem do logo é escolhida por `<input type="file" accept="image/*">
 | Fundo transparente | seletor de fundo desativado; o logo mono usa o fundo do QR |
 | Contorno circular + corpo `custom` | o contorno vira quadrado |
 | Centro ícone + corpo `lib` | força o backend `custom` |
-| Logo com correção manual L/M | sobe para Q |
+| Logo com correção manual L/M | sobe para Q e mostra `#eclNote` |
 | Legenda longa | até 2 linhas equilibradas; a fonte cai de 3 até 1,9 unidade |
 | Legenda com `<`, `&`, `"` | escapada no SVG |
 
@@ -110,7 +109,8 @@ Nenhuma. A imagem do logo é escolhida por `<input type="file" accept="image/*">
 | `libEye.integration.test.ts` | CUS-F07 (centro ícone com corpo lib), CUS-F09 |
 | `logos.test.ts` | CUS-F09 |
 | `frames.test.ts` | CUS-F11 |
-| roteiro manual (leitura com câmera) | CUS-N03, CUS-F12, CUS-F13 |
+| `ecl.test.ts` | CUS-F12, CUS-F14, CUS-N03 (regra de `resolveEcl`) |
+| roteiro manual (leitura com câmera; aviso `#eclNote`) | CUS-N03, CUS-F13, CUS-F14 |
 
 ## 10. Plano de implementação
 Concluído. Marcos: `9f0177b` (personalização ao vivo), `547427b` (formas e cores de olho, fundo transparente), `d499d13` (logos prontos, correção automática, monocromático).

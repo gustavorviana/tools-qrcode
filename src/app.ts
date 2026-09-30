@@ -12,9 +12,15 @@ import type { Ecl, ModuleShape, EyeFrameShape, EyeCenterShape, FrameStyle } from
 import type { ShapeType } from 'qr-code-styling';
 import { BODY, EYE_FRAME, eyeCenterOptions, isCustomBody, centerNeedsCustom } from './qr/shapes';
 import type { BodyShapeDef, EyeFrameDef, CenterOption } from './qr/shapes';
+import { resolveEcl } from './qr/ecl';
+import type { EclChoice } from './qr/ecl';
 import { LOGOS, logoSvg, logoDataUrl } from './qr/logos';
 import type { LogoStyle } from './qr/logos';
-import { escWifi, escVcard, icalDate, fmtIcalDate, maskPhoneBR, maskPhoneWa, socialUrl, paypalUrl, mecard, zoomUrl } from './format';
+import { escWifi, escVcard, icalDate, fmtIcalDate, socialUrl, paypalUrl, mecard, zoomUrl } from './format';
+import { PHONE_TYPES, loadPhone } from './phone-loader';
+import type { PhoneApi } from './phone-loader';
+import { validateFields } from './validate';
+import type { FieldValues } from './validate';
 import { parseDecoded } from './qr/decode';
 import type { DecodedType } from './qr/decode';
 import { SHARE_DEFAULTS, PNG_SIZES, buildShareQuery, parseShareQuery } from './qr/share';
@@ -24,6 +30,28 @@ import { setupViana, bindVianaBack } from './viana';
 /* ---------- Helpers de DOM ---------- */
 const $ = (id: string): HTMLElement => document.getElementById(id)!;
 const $i = (id: string): HTMLInputElement => document.getElementById(id) as HTMLInputElement;
+
+/** Mostra (ou limpa, sem `msg`) o erro logo abaixo de um campo. */
+function setFieldError(el: HTMLElement, msg?: string): void {
+  const errId = el.id + '_err';
+  let p = document.getElementById(errId);
+  el.classList.toggle('invalid', !!msg);
+  if (msg) {
+    el.setAttribute('aria-invalid', 'true');
+    el.setAttribute('aria-describedby', errId);
+    if (!p) {
+      p = document.createElement('p');
+      p.id = errId;
+      p.className = 'field-err';
+      el.insertAdjacentElement('afterend', p);
+    }
+    p.textContent = msg;
+  } else {
+    el.removeAttribute('aria-invalid');
+    el.removeAttribute('aria-describedby');
+    p?.remove();
+  }
+}
 const val = (id: string): string => $i(id).value;
 
 let toastTimer: number | undefined;
@@ -266,6 +294,13 @@ export class App {
 
   /** Após a 1ª geração, mudanças de personalização redesenham o QR ao vivo. */
   private live = false;
+  /** "Ver texto formatado" foi aberto: o texto acompanha cada mudança nos campos. */
+  private formattedOpen = false;
+  /** Campos que a pessoa já deixou (ou tentou gerar): só eles exibem erro enquanto ela digita. */
+  private readonly touched = new Set<string>();
+  /** Lib de telefones (phone.js), carregada só nas páginas com telefone. */
+  private phone: PhoneApi | null = null;
+  private phoneReady: Promise<void> = Promise.resolve();
   private liveTimer: number | undefined;
 
   /** Estilo/legenda atuais da moldura; combinados numa instância `Frame`. */
@@ -343,7 +378,8 @@ export class App {
         return 'SMSTO:' + n + (m ? ':' + m : '');
       }
       case 'whatsapp': {
-        const n = val('f_wanum').replace(/\D/g, '');
+        // O link do WhatsApp exige DDI: usa o E.164 (número BR sem DDI ganha o 55).
+        const n = (this.phone?.phoneE164(val('f_wanum'), true) ?? val('f_wanum')).replace(/\D/g, '');
         if (!n) return '';
         const m = val('f_wamsg').trim();
         return 'https://api.whatsapp.com/send?phone=' + n + (m ? '&text=' + encodeURIComponent(m) : '');
@@ -412,18 +448,67 @@ export class App {
     return '';
   }
 
-  showFormatted(): void {
+  /** Alterna o texto formatado. Com algum campo inválido, só mostra os erros e não abre. */
+  async showFormatted(): Promise<void> {
     const errEl = $('genErr');
     errEl.textContent = '';
-    const text = this.buildContent();
-    const pv = $('genPreview');
-    if (!text.trim()) {
-      pv.hidden = true;
-      errEl.textContent = 'Preencha os campos primeiro.';
-      return;
+    if (this.formattedOpen) { this.setFormattedOpen(false); return; }
+    await this.phoneReady;
+    if (!this.checkFields(true)) { errEl.textContent = 'Corrija os campos destacados.'; this.focusFirstInvalid(); return; }
+    this.setFormattedOpen(true);
+  }
+
+  /* ---------- Validação dos campos (./validate) ---------- */
+  private fieldEls(): HTMLInputElement[] {
+    return Array.from(document.querySelectorAll<HTMLInputElement>(
+      '#genFields input[id], #genFields select[id], #genFields textarea[id]'));
+  }
+
+  private fieldValues(): FieldValues {
+    const v: FieldValues = {};
+    for (const el of this.fieldEls()) v[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    return v;
+  }
+
+  /**
+   * Valida o tipo atual e mostra os erros. `all` (ao gerar ou ver o texto) marca e
+   * exibe todos os campos; sem ele, só os já tocados. Retorna se está tudo válido.
+   */
+  private checkFields(all: boolean): boolean {
+    const errors = validateFields(this.currentType, this.fieldValues(), this.phone?.phoneE164);
+    for (const el of this.fieldEls()) {
+      if (all && errors[el.id]) this.touched.add(el.id);
+      setFieldError(el, this.touched.has(el.id) ? errors[el.id] : undefined);
     }
-    $('genPreviewText').textContent = text;
-    pv.hidden = false;
+    const ok = Object.keys(errors).length === 0;
+    if (ok && $('genErr').textContent === 'Corrija os campos destacados.') $('genErr').textContent = '';
+    return ok;
+  }
+
+  private focusFirstInvalid(): void {
+    document.querySelector<HTMLElement>('#genFields .invalid')?.focus();
+  }
+
+  private setFormattedOpen(open: boolean): void {
+    this.formattedOpen = open;
+    $('formattedBtn').textContent = open ? 'Ocultar texto formatado' : 'Ver texto formatado';
+    if (open) this.refreshFormatted();
+    else $('genPreview').hidden = true;
+  }
+
+  /**
+   * Redesenha o texto formatado, se ele já foi aberto. Com os campos vazios, a caixa
+   * some e volta sozinha quando houver conteúdo. Retorna se há texto.
+   */
+  private refreshFormatted(): boolean {
+    if (!this.formattedOpen) return false;
+    // Com algum campo inválido, o texto some até ser corrigido.
+    const valid = Object.keys(validateFields(this.currentType, this.fieldValues(), this.phone?.phoneE164)).length === 0;
+    const text = valid ? this.buildContent() : '';
+    const has = !!text.trim();
+    if (has) $('genPreviewText').textContent = text;
+    $('genPreview').hidden = !has;
+    return has;
   }
 
   private renderSeq = 0;
@@ -448,20 +533,15 @@ export class App {
   }
 
   /**
-   * Resolve o nível de correção efetivo. `AUTO` (padrão) eleva sozinho conforme
-   * o que reduz a leitura: formas de ícone → Alta; logo → Máxima. No modo manual,
-   * mantém uma rede de segurança se houver logo.
+   * Resolve o nível de correção efetivo (regra em ./qr/ecl). Quando um nível manual
+   * L/M é elevado por causa do logo, mostra o aviso abaixo do seletor.
    */
   private effectiveEcl(): Ecl {
-    const sel = val('genEcl');
-    if (sel === 'AUTO') {
-      let ecl: Ecl = 'MEDIUM';
-      if (isCustomBody(this.designer.shape) || centerNeedsCustom(this.designer.eyeCenterShape)) ecl = 'QUARTILE';
-      if (this.designer.hasLogo) ecl = 'HIGH';
-      return ecl;
-    }
-    let ecl = sel as Ecl;
-    if (this.designer.hasLogo && (ecl === 'LOW' || ecl === 'MEDIUM')) ecl = 'QUARTILE';
+    const { ecl, raised } = resolveEcl(val('genEcl') as EclChoice, {
+      customShapes: isCustomBody(this.designer.shape) || centerNeedsCustom(this.designer.eyeCenterShape),
+      hasLogo: this.designer.hasLogo,
+    });
+    $('eclNote').hidden = !raised;
     return ecl;
   }
 
@@ -476,6 +556,12 @@ export class App {
   }
 
   async doGenerate(): Promise<void> {
+    await this.phoneReady;
+    if (!this.checkFields(true)) {
+      $('genErr').textContent = 'Corrija os campos destacados.';
+      this.focusFirstInvalid();
+      return;
+    }
     await this.regenerate();
     if (this.lastSVG) {
       // Sucesso: troca para a etapa de personalização + QR (ao vivo).
@@ -1009,6 +1095,8 @@ export class App {
   private geoSet(lat: number, lng: number): void {
     $i('f_geolat').value = Number(lat).toFixed(6);
     $i('f_geolng').value = Number(lng).toFixed(6);
+    this.checkFields(false);
+    this.refreshFormatted();
   }
 
   useCurrentLocation(): void {
@@ -1151,6 +1239,22 @@ export class App {
   }
 
   /* ---------- Inicialização ---------- */
+  /**
+   * Carrega o phone.js (mesmo `?v=` do app.js, que o service worker pré-cacheia)
+   * e liga as máscaras. Até lá, os telefones só são checados como obrigatórios.
+   */
+  private initPhone(): void {
+    const v = new URL((document.querySelector('script[src^="/app.js"]') as HTMLScriptElement | null)?.src
+      ?? location.href).searchParams.get('v') ?? '';
+    this.phoneReady = loadPhone(v).then((p) => {
+      this.phone = p;
+      const fmt = (v: string): string => p.maskPhone(v);
+      for (const id of ['f_tel', 'f_smsnum', 'f_vctel', 'f_mctel']) attachMask(id, fmt);
+      attachMask('f_wanum', p.maskPhoneWa);
+      this.checkFields(false);
+    }).catch(() => { toast('Não foi possível carregar a validação de telefone'); });
+  }
+
   init(): void {
     this.inViana = setupViana(document);
     bindVianaBack(document.getElementById('vianaBack'));
@@ -1161,11 +1265,27 @@ export class App {
       this.buildLogoControls();
       // Cada página de gerador tem um tipo fixo (ex.: /wifi/ → `wifi`).
       this.currentType = document.body.dataset.type || this.currentType;
+      // Qualquer campo (digitação, seleção, checkbox) revalida os campos já tocados e
+      // atualiza o texto formatado aberto. Sair de um campo o marca como tocado.
+      const fields = document.getElementById('genFields');
+      const onField = () => {
+        this.checkFields(false);
+        this.refreshFormatted();
+      };
+      fields?.addEventListener('input', onField);
+      fields?.addEventListener('change', onField);
+      fields?.addEventListener('focusout', (ev) => {
+        const id = (ev.target as HTMLElement).id;
+        if (!id) return;
+        this.touched.add(id);
+        this.checkFields(false);
+      });
     }
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => { /* ignore */ });
+        // Caminho absoluto: relativo, em /wifi/ viraria /wifi/sw.js (404) e o offline não funcionaria.
+        navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => { /* ignore */ });
       });
     }
 
@@ -1182,11 +1302,7 @@ export class App {
     const readHint = document.getElementById('readHint');
     if (readHint) readHint.textContent = 'Leia QR Code ou código de barras pela câmera ou de uma imagem do dispositivo.';
 
-    attachMask('f_tel', maskPhoneBR);
-    attachMask('f_smsnum', maskPhoneBR);
-    attachMask('f_vctel', maskPhoneBR);
-    attachMask('f_mctel', maskPhoneBR);
-    attachMask('f_wanum', maskPhoneWa);
+    if (this.page === 'gen' && PHONE_TYPES.has(this.currentType)) this.initPhone();
 
     // O conteúdo e o nível de correção são fixados ao clicar em "Gerar"; a partir
     // daí (etapa 2) só a personalização muda, redesenhando o QR ao vivo.
@@ -1261,7 +1377,7 @@ export class App {
   private exposeHandlers(): void {
     const w = window as unknown as Record<string, unknown>;
     w.toggleWifiPass = () => this.toggleWifiPass();
-    w.showFormatted = () => this.showFormatted();
+    w.showFormatted = () => void this.showFormatted();
     w.doGenerate = () => this.doGenerate();
     w.openModal = () => this.openModal();
     w.closeModal = () => this.closeModal();

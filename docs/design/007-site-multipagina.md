@@ -1,9 +1,9 @@
-# SPEC-007 — Site multipágina e SEO
+# DESIGN-007 — Site multipágina e SEO
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-007](../prd/007-site-multipagina.md) |
+| **Spec** | [SPEC-007](../spec/007-site-multipagina.md) |
 | **Módulos** | `src/site/catalog.ts`, `src/site/render.ts`, `src/site/icons.ts`, `src/templates/`, `build.mjs`, `src/app.ts`, `src/styles.css`, `public/sw.js`, `public/manifest.webmanifest` |
 | **Atualizado em** | 2026-09-29 |
 
@@ -56,7 +56,7 @@ interface Templates { layout; pages: Record<kind, string>; partials: Record<stri
 | `/ler/` | leitor |
 | `/privacidade/` | privacidade |
 
-Link compartilhado: sempre `/#q=…` (ver SPEC-003).
+Link compartilhado: sempre `/#q=…` (ver DESIGN-003).
 
 ## 4. Componentes
 ```ts

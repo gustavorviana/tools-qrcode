@@ -3,29 +3,34 @@
 Aqui fica o **porquê** e o **como** de cada util do QR Utils. O README da raiz
 continua sendo o guia de desenvolvimento.
 
-- `prd/NNN-nome.md`: o quê e por quê (problema, objetivos, requisitos, aceite).
-- `specs/NNN-nome.md`: como funciona (módulos, dados, fluxos, erros, testes, decisões).
-- O PRD e a spec de uma util têm o **mesmo número** e se referenciam no cabeçalho.
-- Modelos: [prd/_template.md](prd/_template.md) e [specs/_template.md](specs/_template.md).
+- `spec/NNN-nome.md`: o quê e por quê (problema, objetivos, requisitos, aceite).
+- `design/NNN-nome.md`: como funciona (módulos, dados, fluxos, erros, testes, decisões).
+- Nomenclatura do Spec-Driven Development: a **spec** é a fonte da verdade funcional; o **design** (plan) deriva dela.
+- A spec e o design de uma util têm o **mesmo número** e se referenciam no cabeçalho.
+- `tasks/NNN-nome.md`: tarefas ordenadas, cada uma ligada a requisitos e critérios. Obrigatório para mudanças novas; as utils já implementadas registram os marcos na seção "Plano de implementação" do design.
+- [constitution.md](constitution.md): princípios que valem para todas as utils.
+- Modelos: [spec/_template.md](spec/_template.md), [design/_template.md](design/_template.md) e [tasks/_template.md](tasks/_template.md).
 
 ## Índice
 
-| # | Util | PRD | Spec | Status |
+| # | Util | Spec | Design | Status |
 |---|---|---|---|---|
-| 000 | Produto / arquitetura | [PRD-000](prd/000-qr-utils.md) | [SPEC-000](specs/000-arquitetura.md) | Implementado |
-| 001 | Geração | [PRD-001](prd/001-geracao.md) | [SPEC-001](specs/001-geracao.md) | Implementado |
-| 002 | Personalização | [PRD-002](prd/002-personalizacao.md) | [SPEC-002](specs/002-personalizacao.md) | Implementado |
-| 003 | Exportação e compartilhamento | [PRD-003](prd/003-exportacao-compartilhamento.md) | [SPEC-003](specs/003-exportacao-compartilhamento.md) | Implementado |
-| 004 | Leitura | [PRD-004](prd/004-leitura.md) | [SPEC-004](specs/004-leitura.md) | Implementado |
-| 005 | PWA e offline | [PRD-005](prd/005-pwa-offline.md) | [SPEC-005](specs/005-pwa-offline.md) | Implementado |
-| 006 | Privacidade | [PRD-006](prd/006-privacidade.md) | [SPEC-006](specs/006-privacidade.md) | Implementado |
-| 007 | Site multipágina e SEO | [PRD-007](prd/007-site-multipagina.md) | [SPEC-007](specs/007-site-multipagina.md) | Implementado |
-| 008 | Integração com o Viana Utils | [PRD-008](prd/008-viana-utils.md) | [SPEC-008](specs/008-viana-utils.md) | Implementado |
+| 000 | Produto / arquitetura | [SPEC-000](spec/000-qr-utils.md) | [DESIGN-000](design/000-arquitetura.md) | Implementado |
+| 001 | Geração | [SPEC-001](spec/001-geracao.md) | [DESIGN-001](design/001-geracao.md) | Implementado |
+| 002 | Personalização | [SPEC-002](spec/002-personalizacao.md) | [DESIGN-002](design/002-personalizacao.md) | Implementado |
+| 003 | Exportação e compartilhamento | [SPEC-003](spec/003-exportacao-compartilhamento.md) | [DESIGN-003](design/003-exportacao-compartilhamento.md) | Implementado |
+| 004 | Leitura | [SPEC-004](spec/004-leitura.md) | [DESIGN-004](design/004-leitura.md) | Implementado |
+| 005 | PWA e offline | [SPEC-005](spec/005-pwa-offline.md) | [DESIGN-005](design/005-pwa-offline.md) | Implementado |
+| 006 | Privacidade | [SPEC-006](spec/006-privacidade.md) | [DESIGN-006](design/006-privacidade.md) | Implementado |
+| 007 | Site multipágina e SEO | [SPEC-007](spec/007-site-multipagina.md) | [DESIGN-007](design/007-site-multipagina.md) | Implementado |
+| 008 | Integração com o Viana Utils | [SPEC-008](spec/008-viana-utils.md) | [DESIGN-008](design/008-viana-utils.md) | Implementado |
 
 ## Convenções
 
 - IDs de requisito usam o prefixo da util: `APP`, `GEN`, `CUS`, `EXP`, `LER`, `PWA`, `PRV`, `WEB`, `VIA`.
-  A seção "Testes" da spec aponta quais IDs cada teste cobre.
+  Critérios de aceite usam `AC-<ID do requisito>.<n>` (ex.: `AC-LER-F07.2`). A seção "Testes" do design aponta quais IDs cada teste cobre.
+- IDs nunca são renumerados; item removido fica marcado como descontinuado.
+- Ambiguidade não resolvida fica marcada `[NEEDS CLARIFICATION: ...]` até ser decidida.
 - Status: `Rascunho` → `Aprovado` → `Em implementação` → `Implementado`.
-- Mudou o comportamento? Atualize o PRD e a spec no mesmo PR, com a data em "Atualizado em".
+- Mudou o comportamento? Atualize a spec primeiro, depois o design e as tasks, no mesmo PR, com a data em "Atualizado em".
 - Util nova: copie os modelos com o próximo número livre.

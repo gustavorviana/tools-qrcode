@@ -6,7 +6,6 @@
     <button class="ctab" data-ctab="shape" onclick="setCustomTab('shape')">◼️ Formas</button>
     <button class="ctab" data-ctab="logo" onclick="setCustomTab('logo')">🖼️ Logo</button>
     <button class="ctab" data-ctab="frame" onclick="setCustomTab('frame')">🔲 Moldura</button>
-    <button class="ctab" data-ctab="adv" onclick="setCustomTab('adv')">⚙️ Avançado</button>
   </div>
 
   <!-- Cor -->
@@ -120,18 +119,5 @@
       <label class="fld" for="c_caption">Legenda</label>
       <input type="text" id="c_caption" value="ESCANEIE" maxlength="45" oninput="setCaption(this.value)">
     </div>
-  </div>
-
-  <!-- Avançado -->
-  <div class="cpanel" data-panel="adv" hidden>
-    <label class="fld" for="genEcl">Correção de erro</label>
-    <select id="genEcl" onchange="onEclChange()">
-      <option value="AUTO" selected>Automático</option>
-      <option value="LOW">Baixa (mais dados)</option>
-      <option value="MEDIUM">Média</option>
-      <option value="QUARTILE">Alta</option>
-      <option value="HIGH">Máxima (mais robusto)</option>
-    </select>
-    <p class="hint" style="margin-top:8px">No modo automático, a correção sobe sozinha com logo ou formas de ícone, para manter a leitura.</p>
   </div>
 </details>

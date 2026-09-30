@@ -1,11 +1,11 @@
-# PRD-008 — Integração com o app Viana Utils
+# SPEC-008 — Integração com o app Viana Utils
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **Spec** | [SPEC-008](../specs/008-viana-utils.md) |
+| **Design** | [DESIGN-008](../design/008-viana-utils.md) |
 | **Módulo** | `src/viana.ts`, `src/templates/layout.html`, `src/styles.css`, `src/app.ts` |
-| **Atualizado em** | 2026-09-29 |
+| **Atualizado em** | 2026-09-30 |
 
 ## 1. Problema
 O QR Utils também é aberto dentro do app Android **Viana Utils**. Lá ele roda em tela cheia num `WebView`, sem a barra do app, e o cabeçalho visível é o do próprio site. Isso cria dois problemas:
@@ -43,11 +43,22 @@ O QR Utils também é aberto dentro do app Android **Viana Utils**. Lá ele roda
 Nenhuma.
 
 ## 7. Critérios de aceite
-- [ ] Com `window.VianaApp` definido (Playwright `addInitScript`), o `<html>` recebe `in-viana`, o "‹ Voltar" aparece e tocar nele chama `exit()` uma vez.
-- [ ] Nesse modo, o cartão "Instalar como app", o banner e os textos de instalação não aparecem.
-- [ ] Sem `window.VianaApp`, o "‹ Voltar" não aparece e os elementos de instalação continuam visíveis.
-- [ ] `tests/viana.test.ts` e os casos Viana de `tests/site.test.ts` passam.
+| ID | Requisito | Critério | Verificação |
+|---|---|---|---|
+| AC-VIA-F01.1 | VIA-F01 | Com `window.VianaApp` definido, o app deve ser detectado e o `<html>` deve receber `in-viana`; sem ele, não. | `viana.test.ts` |
+| AC-VIA-F02.1 | VIA-F02 | Toda página deve trazer o "‹ Voltar" com `hidden` no HTML. | `site.test.ts` |
+| AC-VIA-F02.2 | VIA-F02 | Com `VianaApp` definido, o "‹ Voltar" deve aparecer e tocar nele deve chamar `exit()` uma vez. | `viana.test.ts` + manual (Playwright ad hoc com `addInitScript`, fora do repo) |
+| AC-VIA-F03.1 | VIA-F03 | Todos os elementos de instalação listados no VIA-F03 devem ter a classe `no-viana`. | `site.test.ts` |
+| AC-VIA-F04.1 | VIA-F04 | Com `VianaApp` definido, o banner de instalação não deve aparecer, nem se `showInstall()` for chamado. | manual (Playwright ad hoc, fora do repo) |
+| AC-VIA-N01.1 | VIA-N01 | O `<head>` de toda página deve marcar `in-viana` antes do CSS/JS do site. | `site.test.ts` |
+| AC-VIA-N02.1 | VIA-N02 | Sem `VianaApp`, o "‹ Voltar" deve continuar oculto, os elementos de instalação visíveis, e `vianaExit()` não deve lançar erro. | `viana.test.ts` |
 
-## 8. Questões em aberto
+## 8. Fora de escopo
+- Qualquer uso do canal interno `VianaBridge` ou de APIs além da v1 (`platform`, `version`, `exit`).
+- Detecção pelo user agent.
+- Tema escuro (ver Questões em aberto).
+- Integração com o app em plataformas além do Android.
+
+## 9. Questões em aberto
 - **Detectar pelo user agent (` VianaUtils`)?** Provisório: não é necessário, porque o objeto existe antes dos scripts do site. Usar o UA só se um dia houver renderização no servidor.
-- **Tema escuro:** o app repassa `prefers-color-scheme: dark`, mas o site ainda não tem modo escuro. Fica para um PRD próprio.
+- **Tema escuro:** o app repassa `prefers-color-scheme: dark`, mas o site ainda não tem modo escuro. Fica para uma spec própria.

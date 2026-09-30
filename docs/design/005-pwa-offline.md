@@ -1,11 +1,11 @@
-# SPEC-005 — App instalável e offline (PWA)
+# DESIGN-005 — App instalável e offline (PWA)
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-005](../prd/005-pwa-offline.md) |
+| **Spec** | [SPEC-005](../spec/005-pwa-offline.md) |
 | **Módulos** | `public/manifest.webmanifest`, `public/sw.js`, `src/app.ts`, `build.mjs` |
-| **Atualizado em** | 2026-09-29 |
+| **Atualizado em** | 2026-09-30 |
 
 ## 1. Resumo
 - **Manifesto:** completo, com atalhos, `file_handlers` e `share_target`.
@@ -15,16 +15,16 @@
 
 ## 2. Módulos e dependências
 - `public/manifest.webmanifest` (estático).
-- `public/sw.js`: o build troca `__BUILD_HASH__` pela versão (SPEC-000).
+- `public/sw.js`: o build troca `__BUILD_HASH__` pela versão (DESIGN-000).
 - `src/app.ts`: `init` (registra o SW no `load`), `handleLaunch`, `consumeSharedImage`, `showInstall`, `dismissInstall`, `installApp`, `promptInstall`, e os eventos `beforeinstallprompt` e `appinstalled`.
-- Depende de SPEC-004 (`decodeFile`) para ler as imagens recebidas.
+- Depende de DESIGN-004 (`decodeFile`) para ler as imagens recebidas.
 
 ## 3. Modelo de dados
 | Item | Valor |
 |---|---|
 | Cache do app | `qr-utils-<versão>-<hash>` (hash do conteúdo de JS, CSS e páginas) |
 | Cache de compartilhamento | `qr-utils-share`, chave `shared-image` |
-| Precache | todas as páginas do catálogo (`/`, `/wifi/`, `/ler/`…), `app.js?v=<hash>`, `app.css?v=<hash>`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `og-image.png`, `screenshot-narrow.png`, `screenshot-wide.png`, `zxing_reader.wasm` |
+| Precache | todas as páginas do catálogo (`/`, `/wifi/`, `/ler/`…), `app.js?v=<hash>`, `phone.js?v=<hash>`, `app.css?v=<hash>`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-512.png`, `og-image.png`, `screenshot-narrow.png`, `screenshot-wide.png`, `zxing_reader.wasm` |
 | `localStorage` | `installDismissed = '1'` |
 
 Manifesto: `id "/"`, `start_url "./"`, `scope "./"`, `display standalone`, `orientation portrait`, `lang pt-BR`, `categories [utilities, productivity]`, `launch_handler.client_mode navigate-existing`, `edge_side_panel.preferred_width 400`.
@@ -85,6 +85,7 @@ Nenhuma permissão é pedida para instalar.
 ## 8. Erros e casos de borda
 | Situação | Comportamento |
 |---|---|
+| Registro a partir de uma subpágina (`/wifi/`) | `register('/sw.js', { scope: '/' })` com caminho absoluto; relativo, viraria `/wifi/sw.js` (404) |
 | Um asset do precache dá 404 | os demais são cacheados |
 | `…/index.html` redireciona (301) | não é precacheado; as páginas usam a URL com barra final |
 | Offline sem cache | `Response.error()` |

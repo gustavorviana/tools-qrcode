@@ -1,11 +1,11 @@
-# SPEC-003 — Exportação e compartilhamento
+# DESIGN-003 — Exportação e compartilhamento
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-003](../prd/003-exportacao-compartilhamento.md) |
+| **Spec** | [SPEC-003](../spec/003-exportacao-compartilhamento.md) |
 | **Módulos** | `src/qr/designer.ts`, `src/qr/raster.ts`, `src/qr/share.ts`, `src/app.ts` |
-| **Atualizado em** | 2026-09-29 |
+| **Atualizado em** | 2026-09-30 |
 
 ## 1. Resumo
 - **SVG:** exportado como está.
@@ -71,7 +71,7 @@ function parseShareQuery(raw: string): ShareParams | null
 **Sair do link:** `exitShared()` navega para `/` (página limpa, sem o `#q=…`), o que também descarta as opções do link.
 
 ## 6. UI
-- Etapa 3 `#step3`: prévia clicável, `#pngSize`, "Baixar PNG", "Baixar SVG", "Compartilhar imagem", "Compartilhar link do QR", o aviso `#shareLinkNote` (só com logo de imagem própria) e `#qrMeta`.
+- Etapa 3 `#step3`: prévia clicável, `#pngSize`, "Baixar PNG", "Baixar SVG", "Compartilhar imagem", "Compartilhar link do QR", o aviso `#shareLinkNote` (só com logo de imagem própria), o aviso `#eclNote` (correção elevada por causa do logo; ver DESIGN-002), `#qrMeta` e o divisor-sanfona "Avançado" (`details.divider-toggle`, o mesmo visual do "Mais tipos" da home, fechado por padrão) com o seletor `#genEcl`.
 - Modal `#qrModal`: largura 220, 300, 380 ou 460 px conforme o tamanho (máximo 88vw); fecha com ✕, com o fundo ou com Esc.
 - View `#view-share`: QR, conteúdo interpretado e o botão "Criar o meu QR Code".
 

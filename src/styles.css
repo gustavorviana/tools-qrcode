@@ -92,6 +92,8 @@
 
   .hint{color:var(--muted);font-size:12.5px;margin-top:10px;line-height:1.5}
   .err{color:var(--danger);font-size:13px;margin-top:8px}
+  .invalid{border-color:var(--danger)!important}
+  .field-err{color:var(--danger);font-size:13px;margin:6px 0 0}
 
   /* reader */
   .scan-box{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:1;display:none}
@@ -402,16 +404,18 @@
   .back-home{margin:0 0 8px;font-size:14px;font-weight:600}
   /* Divisor "——— Mais tipos ———" que expande os demais tipos na home. */
   .more-types{margin-top:18px}
-  .more-types>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;
+  .divider-toggle>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;
     color:var(--muted);font-size:14px;font-weight:600;padding:6px 0;user-select:none}
-  .more-types>summary::-webkit-details-marker{display:none}
-  .more-types>summary::before,.more-types>summary::after{content:'';flex:1;height:1px;background:var(--line)}
-  .more-types>summary span{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;line-height:20px;
+  .divider-toggle>summary::-webkit-details-marker{display:none}
+  .divider-toggle>summary::before,.divider-toggle>summary::after{content:'';flex:1;height:1px;background:var(--line)}
+  .divider-toggle>summary span{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;line-height:20px;
     border:1px solid var(--line);border-radius:999px;background:var(--panel);transition:border-color .15s,color .15s}
   /* Seta em SVG (viewBox centrado): fica no meio da linha em qualquer fonte. */
-  .more-types .chev{flex:none;display:block;transition:transform .2s}
-  .more-types>summary:hover span{border-color:var(--accent);color:var(--accent)}
-  .more-types[open] .chev{transform:rotate(180deg)}
+  .divider-toggle .chev{flex:none;display:block;transition:transform .2s}
+  .divider-toggle>summary:hover span{border-color:var(--accent);color:var(--accent)}
+  .divider-toggle[open] .chev{transform:rotate(180deg)}
+  .adv-more{margin-top:14px}
+  .adv-more[open]>summary{margin-bottom:4px}
   .more-types[open]>summary{margin-bottom:14px}
   .more-types>summary:focus-visible span{outline:2px solid var(--accent);outline-offset:2px}
 

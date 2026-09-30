@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { escWifi, escVcard, icalDate, icalGet, fmtIcalDate, maskPhoneBR, maskPhoneWa,
+import { escWifi, escVcard, icalDate, icalGet, fmtIcalDate, 
   socialUrl, paypalUrl, mecard, zoomUrl } from '../src/format';
 
 describe('escWifi', () => {
@@ -53,34 +53,6 @@ describe('fmtIcalDate', () => {
   });
   it('devolve a entrada quando não bate o padrão', () => {
     expect(fmtIcalDate('sem-data')).toBe('sem-data');
-  });
-});
-
-describe('maskPhoneBR', () => {
-  it('formata celular de 11 dígitos', () => {
-    expect(maskPhoneBR('11999998888')).toBe('(11) 99999-8888');
-  });
-  it('formata fixo de 10 dígitos', () => {
-    expect(maskPhoneBR('1133334444')).toBe('(11) 3333-4444');
-  });
-  it('formata parcialmente enquanto digita', () => {
-    expect(maskPhoneBR('11')).toBe('11');
-    expect(maskPhoneBR('119')).toBe('(11) 9');
-  });
-  it('descarta não-dígitos e trunca em 11', () => {
-    expect(maskPhoneBR('(11) 99999-88889999')).toBe('(11) 99999-8888');
-  });
-});
-
-describe('maskPhoneWa', () => {
-  it('sem código do país, comporta como BR', () => {
-    expect(maskPhoneWa('11999998888')).toBe('(11) 99999-8888');
-  });
-  it('inclui o código do país acima de 11 dígitos', () => {
-    expect(maskPhoneWa('5511999998888')).toBe('+55 (11) 99999-8888');
-  });
-  it('devolve vazio para entrada sem dígitos', () => {
-    expect(maskPhoneWa('abc')).toBe('');
   });
 });
 

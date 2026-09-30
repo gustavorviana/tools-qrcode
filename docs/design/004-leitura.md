@@ -1,9 +1,9 @@
-# SPEC-004 — Leitura de QR Code e código de barras
+# DESIGN-004 — Leitura de QR Code e código de barras
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-004](../prd/004-leitura.md) |
+| **Spec** | [SPEC-004](../spec/004-leitura.md) |
 | **Módulos** | `src/qr/reader.ts`, `src/qr/barcode.ts`, `src/qr/decode.ts`, `src/app.ts` |
 | **Atualizado em** | 2026-09-29 |
 
@@ -85,7 +85,7 @@ function parseDecoded(raw: string): Decoded
 
 ## 7. Permissões e manifest
 - **Câmera:** pedida pelo navegador ao tocar em "Escanear com a câmera"; exige HTTPS.
-- Leitura por imagem sem permissão (seletor de arquivo). `file_handlers` e `share_target`: ver SPEC-005.
+- Leitura por imagem sem permissão (seletor de arquivo). `file_handlers` e `share_target`: ver DESIGN-005.
 
 ## 8. Erros e casos de borda
 | Situação | Comportamento |

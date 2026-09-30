@@ -1,14 +1,14 @@
-# SPEC-000 — Arquitetura, build e entrega
+# DESIGN-000 — Arquitetura, build e entrega
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-000](../prd/000-qr-utils.md) |
+| **Spec** | [SPEC-000](../spec/000-qr-utils.md) |
 | **Módulos** | `src/`, `build.mjs`, `public/`, `.github/workflows/ci.yml`, `.github/workflows/pipeline.yml` |
-| **Atualizado em** | 2026-09-29 |
+| **Atualizado em** | 2026-09-30 |
 
 ## 1. Resumo
-Site estático multipágina em TypeScript, sem framework. O `esbuild` gera um `app.js` e um `app.css` compartilhados, e o build renderiza uma página HTML por entrada do catálogo a partir de templates ([SPEC-007](007-site-multipagina.md)). Também saem: service worker, manifesto, ícones, imagens, `sitemap.xml` e o `.wasm` do ZXing. A publicação é estática, num Cloudflare Worker com static assets. Cada PR mesclado em `main` gera uma versão semântica, faz o deploy e cria a tag.
+Site estático multipágina em TypeScript, sem framework. O `esbuild` gera um `app.js` e um `app.css` compartilhados, e o build renderiza uma página HTML por entrada do catálogo a partir de templates ([DESIGN-007](007-site-multipagina.md)). Também saem: service worker, manifesto, ícones, imagens, `sitemap.xml` e o `.wasm` do ZXing. A publicação é estática, num Cloudflare Worker com static assets. Cada PR mesclado em `main` gera uma versão semântica, faz o deploy e cria a tag.
 
 ## 2. Módulos e dependências
 | Módulo | Responsabilidade | Depende de |
@@ -34,7 +34,7 @@ Não há banco nem back-end. O estado vive em memória na instância `App`. O qu
 | `localStorage` | `installDismissed` | `'1'` |
 | Cache Storage | `qr-utils-<versão>` | precache do app |
 | Cache Storage | `qr-utils-share` / `shared-image` | imagem recebida via share target (transitória) |
-| URL | `#q=…`, `?view=`, `?share-target=1` | ver SPEC-003 e SPEC-005 |
+| URL | `#q=…`, `?view=`, `?share-target=1` | ver DESIGN-003 e DESIGN-005 |
 
 ## 4. Componentes
 - **`App`** (`src/app.ts`): uma classe com o estado da UI. Os métodos públicos são expostos em `window` por `exposeHandlers()` para os `onclick` do HTML.
@@ -43,7 +43,7 @@ Não há banco nem back-end. O estado vive em memória na instância `App`. O qu
 
 ## 5. Fluxos
 **Build** (`npm run build`)
-1. Bundle e minificação de `src/main.ts` em `dist/app.js` (IIFE, ES2019, sem comentários legais).
+1. Bundle e minificação de `src/main.ts` em `dist/app.js` e de `src/phone-entry.ts` em `dist/phone.js` (IIFE, ES2019, sem comentários legais). O `?v=` (hash) cobre `app.js`, `app.css` e `phone.js`.
 2. Minificação de `src/styles.css` em `dist/app.css`.
 3. Renderização das páginas do catálogo (`src/site/render.ts` + `src/templates/`) em `dist/<caminho>/index.html`, trocando `__VERSION__`; geração do `sitemap.xml`.
 4. Cópia de `public/*` (exceto `sw.js`) para `dist/`.
@@ -59,19 +59,19 @@ Não há banco nem back-end. O estado vive em memória na instância `App`. O qu
 4. Cria e envia a tag `v<NEW_VERSION>`.
 
 ## 6. UI
-Páginas estáticas, identificadas por `<body data-page>` ([SPEC-007](007-site-multipagina.md)):
+Páginas estáticas, identificadas por `<body data-page>` ([DESIGN-007](007-site-multipagina.md)):
 
 | Página | Conteúdo |
 |---|---|
-| `home` (`/`) | cards dos tipos, Como funciona, Sobre (créditos, instalar, repositório) e o QR compartilhado (SPEC-003) |
-| `gen` (`/wifi/`, `/zoom/`… — uma por tipo) | geração (SPEC-001, 002, 003) |
-| `read` (`/ler/`) | leitura e formatos (SPEC-004) |
-| `privacy` (`/privacidade/`) | privacidade (SPEC-006) |
+| `home` (`/`) | cards dos tipos, Como funciona, Sobre (créditos, instalar, repositório) e o QR compartilhado (DESIGN-003) |
+| `gen` (`/wifi/`, `/zoom/`… — uma por tipo) | geração (DESIGN-001, 002, 003) |
+| `read` (`/ler/`) | leitura e formatos (DESIGN-004) |
+| `privacy` (`/privacidade/`) | privacidade (DESIGN-006) |
 
 Há também a barra de instalação, o modal do QR ampliado e o toast.
 
 ## 7. Permissões e manifest
-Ver SPEC-004 (câmera), SPEC-001 (geolocalização) e SPEC-005 (manifesto).
+Ver DESIGN-004 (câmera), DESIGN-001 (geolocalização) e DESIGN-005 (manifesto).
 
 ## 8. Erros e casos de borda
 | Situação | Comportamento |

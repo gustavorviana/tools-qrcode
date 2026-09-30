@@ -1,9 +1,9 @@
-# SPEC-XXX — <Nome>
+# DESIGN-XXX — <Nome>
 
 | | |
 |---|---|
 | **Status** | Rascunho |
-| **PRD** | [PRD-XXX](../prd/XXX-nome.md) |
+| **Spec** | [SPEC-XXX](../spec/XXX-nome.md) |
 | **Módulos** | `src/<caminho>`, ... |
 | **Atualizado em** | AAAA-MM-DD |
 
@@ -32,10 +32,10 @@ Permissões do navegador (câmera, geolocalização…), o que é declarado no `
 Tabela com situação → comportamento esperado.
 
 ## 9. Testes
-Quais testes existem e qual requisito do PRD cada um cobre.
+Quais testes existem e quais requisitos e critérios (`AC-…`) da spec cada um cobre.
 
 ## 10. Plano de implementação
-Passos em ordem. Cada passo compila e pode virar um commit.
+Resumo dos marcos. As tarefas detalhadas ficam em `tasks/XXX-nome.md` ([modelo](../tasks/_template.md)).
 
 ## 11. Decisões e alternativas descartadas
 Por que foi feito assim.

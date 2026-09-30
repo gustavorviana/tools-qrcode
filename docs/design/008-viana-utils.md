@@ -1,9 +1,9 @@
-# SPEC-008 — Integração com o app Viana Utils
+# DESIGN-008 — Integração com o app Viana Utils
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-008](../prd/008-viana-utils.md) |
+| **Spec** | [SPEC-008](../spec/008-viana-utils.md) |
 | **Módulos** | `src/viana.ts`, `src/app.ts`, `src/templates/layout.html`, `src/templates/partials/{about,overlays,privacy}.html`, `src/templates/pages/home.html`, `src/styles.css` |
 | **Atualizado em** | 2026-09-29 |
 
@@ -79,7 +79,7 @@ Nenhuma mudança. Dentro do app, o `beforeinstallprompt` não dispara; o manifes
 | `viana.test.ts` › detecção, `setupViana`, `bindVianaBack` (fica `hidden` fora do app; exibe e chama `exit()` dentro), `vianaExit` | VIA-F01, VIA-F02, VIA-N02 |
 | `site.test.ts` › script no `<head>` e link "‹ Voltar" `hidden` em todas as páginas | VIA-F02, VIA-N01 |
 | `site.test.ts` › classes `no-viana` nos elementos de instalação | VIA-F03 |
-| Playwright com `addInitScript` definindo `VianaApp` | VIA-F02 a VIA-F04 (clique chama `exit()` uma vez) |
+| roteiro manual: Playwright ad hoc (fora do repo) com `addInitScript` definindo `VianaApp` | VIA-F02 a VIA-F04 (clique chama `exit()` uma vez) |
 
 ## 10. Plano de implementação
 Concluído: `src/viana.ts` → script no `<head>` e botão no layout → classes nos partials → CSS → `init()`/`showInstall()` → testes.

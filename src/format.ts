@@ -1,6 +1,6 @@
 /*
- * Formatação pura — escapes de conteúdo (Wi-Fi/vCard/iCal), datas e máscaras de
- * telefone. Sem DOM: funções puras, fáceis de testar isoladamente.
+ * Formatação pura — escapes de conteúdo (Wi-Fi/vCard/iCal), datas e links
+ * de redes sociais. Sem DOM: funções puras, fáceis de testar isoladamente.
  */
 
 /** Escapa caracteres especiais do payload Wi-Fi (`\ ; , " :`). */
@@ -25,26 +25,6 @@ export function fmtIcalDate(s: string): string {
   if (!m) return s;
   const d = m[3] + '/' + m[2] + '/' + m[1];
   return m[4] ? d + ' ' + m[4] + ':' + m[5] : d;
-}
-
-/** Máscara de telefone BR local: `(11) 99999-9999` (celular) ou `(11) 9999-9999` (fixo). */
-export function maskPhoneBR(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 11);
-  if (d.length <= 2) return d;
-  const ddd = '(' + d.slice(0, 2) + ') ';
-  const r = d.slice(2);
-  if (r.length <= 4) return ddd + r;
-  if (r.length <= 8) return ddd + r.slice(0, 4) + '-' + r.slice(4);
-  return ddd + r.slice(0, 5) + '-' + r.slice(5);
-}
-
-/** Máscara de WhatsApp: inclui o código do país (dígitos além dos 11 nacionais). */
-export function maskPhoneWa(v: string): string {
-  const d = v.replace(/\D/g, '').slice(0, 15);
-  if (!d) return '';
-  if (d.length <= 11) return maskPhoneBR(d);
-  const cc = d.slice(0, d.length - 11);
-  return '+' + cc + ' ' + maskPhoneBR(d.slice(d.length - 11));
 }
 
 /**

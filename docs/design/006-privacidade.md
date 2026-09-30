@@ -1,9 +1,9 @@
-# SPEC-006 — Privacidade e transparência
+# DESIGN-006 — Privacidade e transparência
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **PRD** | [PRD-006](../prd/006-privacidade.md) |
+| **Spec** | [SPEC-006](../spec/006-privacidade.md) |
 | **Módulos** | `src/templates/partials/privacy.html`, `src/templates/partials/about.html`, `src/templates/layout.html`, `src/app.ts`, `build.mjs` |
 | **Atualizado em** | 2026-09-29 |
 
@@ -19,7 +19,7 @@ A página Privacidade descreve esses fluxos e deve ser atualizada junto com eles
 ## 2. Módulos e dependências
 - `src/templates/`: textos da página `/privacidade/`, da seção Sobre e do rodapé.
 - `src/app.ts`: consentimento do mapa (`loadMap`), aviso do Pix (`renderDecoded`), aviso do logo no link (`#shareLinkNote`).
-- `build.mjs`: garante o HTML autocontido (SPEC-000).
+- `build.mjs`: garante o HTML autocontido (DESIGN-000).
 - `src/qr/barcode.ts`: `locateFile` aponta o `.wasm` para a própria origem.
 
 ## 3. Modelo de dados
@@ -56,7 +56,7 @@ Não há componente dedicado. As garantias vêm de:
 - `#view-about`: descrição, resumo de privacidade, instalar, créditos (jsQR, zxing-wasm/ZXing-C++, Project Nayuki), formatos suportados, repositório e autoria.
 
 ## 7. Permissões e manifest
-Câmera e geolocalização são pedidas só no gesto do usuário (SPEC-004, SPEC-001). Não há cookies nem outras permissões.
+Câmera e geolocalização são pedidas só no gesto do usuário (DESIGN-004, DESIGN-001). Não há cookies nem outras permissões.
 
 ## 8. Erros e casos de borda
 | Situação | Comportamento |

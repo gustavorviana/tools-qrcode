@@ -1,11 +1,11 @@
-# PRD-003 — Exportação e compartilhamento
+# SPEC-003 — Exportação e compartilhamento
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **Spec** | [SPEC-003](../specs/003-exportacao-compartilhamento.md) |
+| **Design** | [DESIGN-003](../design/003-exportacao-compartilhamento.md) |
 | **Módulo** | `src/qr/designer.ts`, `src/qr/raster.ts`, `src/qr/share.ts`, `src/app.ts` |
-| **Atualizado em** | 2026-09-29 |
+| **Atualizado em** | 2026-09-30 |
 
 ## 1. Problema
 Depois de gerar, o QR precisa sair do app: em imagem para imprimir ou postar, em vetor para a gráfica, ou mandado direto para alguém. Muitas ferramentas liberam só um PNG pequeno de graça. E "mandar o QR" costuma significar mandar uma imagem pesada, quando um link bastaria.
@@ -46,14 +46,26 @@ Depois de gerar, o QR precisa sair do app: em imagem para imprimir ou postar, em
 | Tamanho do PNG | 1024 px | 512, 1024, 2048, 4096 |
 
 ## 7. Critérios de aceite
-- [ ] O PNG de 4096 px abre sem linhas claras entre os módulos.
-- [ ] O SVG baixado abre num editor vetorial e é igual à prévia.
-- [ ] No celular, "Compartilhar imagem" abre o menu nativo; no desktop sem suporte, baixa o PNG.
-- [ ] O link copiado, aberto em outra aba, mostra o mesmo QR (cores, formas, moldura, legenda, tamanho).
-- [ ] Um link com `fg=zzz` abre com a cor padrão, sem erro.
-- [ ] Após "Criar o meu QR Code", a personalização volta ao padrão.
-- [ ] `tests/share.test.ts` e `tests/raster.test.ts` passam.
+| ID | Requisito | Critério | Verificação |
+|---|---|---|---|
+| AC-EXP-F01.1 | EXP-F01, EXP-N01 | Para cada tamanho, o PNG baixado deve ter exatamente o lado escolhido; o de 4096 px não deve ter linhas claras entre os módulos. | `raster.test.ts` (dimensões, `geometricPrecision`) + manual (visual) |
+| AC-EXP-F02.1 | EXP-F02 | O SVG baixado deve abrir num editor vetorial e ser igual à prévia. | manual |
+| AC-EXP-F03.1 | EXP-F03 | Quando há Web Share API com arquivos, "Compartilhar imagem" deve abrir o menu nativo; quando não há, deve baixar o PNG. | manual |
+| AC-EXP-F04.1 | EXP-F04 | Quando a pessoa toca no QR, o modal deve abrir com "Baixar PNG" e "Compartilhar". | manual |
+| AC-EXP-F05.1 | EXP-F05, EXP-N05 | O link copiado, aberto em outra aba, deve mostrar o mesmo QR (cores, formas, moldura, legenda, logo pronto); só as opções diferentes do padrão devem estar no link. | `share.test.ts` |
+| AC-EXP-F06.1 | EXP-F06 | Quando um link compartilhado é aberto, o app deve mostrar o QR, o conteúdo interpretado e o botão "Criar o meu QR Code". | manual |
+| AC-EXP-F06.2 | EXP-F06, EXP-N04 | Quando a pessoa toca em "Criar o meu QR Code", a personalização deve voltar ao padrão. | manual |
+| AC-EXP-F07.1 | EXP-F07 | Dado um logo enviado pela pessoa, quando ela compartilha o link, o app deve avisar que o logo não vai no link; com logo pronto, não deve avisar. | manual |
+| AC-EXP-N02.1 | EXP-N02 | Os dados do link devem estar apenas no fragmento `#`. | manual (`share.test.ts` cobre só o conteúdo da query) |
+| AC-EXP-N03.1 | EXP-N03 | Dado um link com `fg=zzz` ou outro valor inválido, o app deve usar o padrão daquele campo, sem erro. | `share.test.ts` |
 
-## 8. Questões em aberto
+## 8. Fora de escopo
+- PDF, EPS e outros formatos além de PNG e SVG.
+- Exportação em lote (vários QRs de uma vez).
+- Compressão ou encurtamento do link compartilhado.
+- Enviar o logo próprio dentro do link.
+- Nome de arquivo personalizado.
+
+## 9. Questões em aberto
 - **Links muito longos** (vCard completo) podem ser cortados por alguns mensageiros. Provisório: sem compressão.
 - **Nome do arquivo** é sempre `qrcode.png`/`qrcode.svg`. Provisório: manter.

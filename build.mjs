@@ -48,6 +48,18 @@ await build({
   outfile: path.join(OUT, 'app.js'),
 });
 
+// 1b) Telefones (libphonenumber-js): bundle à parte, carregado só nas páginas com
+// campo de telefone (ver src/phone-loader.ts).
+await build({
+  entryPoints: ['src/phone-entry.ts'],
+  bundle: true,
+  format: 'iife',
+  minify: true,
+  target: ['es2019'],
+  legalComments: 'none',
+  outfile: path.join(OUT, 'phone.js'),
+});
+
 // 2) CSS: minify.
 await build({
   entryPoints: ['src/styles.css'],
@@ -64,7 +76,11 @@ const hashOf = (...parts) => {
   for (const p of parts) h.update(p);
   return h.digest('hex').slice(0, 10);
 };
-const assetHash = hashOf(await readFile(path.join(OUT, 'app.js')), await readFile(path.join(OUT, 'app.css')));
+const assetHash = hashOf(
+  await readFile(path.join(OUT, 'app.js')),
+  await readFile(path.join(OUT, 'app.css')),
+  await readFile(path.join(OUT, 'phone.js')),
+);
 
 // 3) Catálogo + renderizador (TypeScript puro) compilados para um módulo Node
 //    temporário e importados aqui — a mesma fonte que o app usa.
@@ -134,4 +150,4 @@ const sw = (await readFile('public/sw.js', 'utf8'))
 await writeFile(path.join(OUT, 'sw.js'), sw);
 
 const kb = async (f) => Math.round((await readFile(path.join(OUT, f))).length / 1024);
-console.log(`Build OK -> ${written.length} páginas · app.js ${await kb('app.js')}KB · app.css ${await kb('app.css')}KB · v${version} · cache ${cacheId}`);
+console.log(`Build OK -> ${written.length} páginas · app.js ${await kb('app.js')}KB · phone.js ${await kb('phone.js')}KB · app.css ${await kb('app.css')}KB · v${version} · cache ${cacheId}`);

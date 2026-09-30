@@ -1,11 +1,11 @@
-# PRD-004 — Leitura de QR Code e código de barras
+# SPEC-004 — Leitura de QR Code e código de barras
 
 | | |
 |---|---|
 | **Status** | Implementado |
-| **Spec** | [SPEC-004](../specs/004-leitura.md) |
+| **Design** | [DESIGN-004](../design/004-leitura.md) |
 | **Módulo** | `src/qr/reader.ts`, `src/qr/barcode.ts`, `src/qr/decode.ts`, `src/app.ts` |
-| **Atualizado em** | 2026-09-29 |
+| **Atualizado em** | 2026-09-30 |
 
 ## 1. Problema
 - A câmera do celular lê QR, mas não lê um QR que está num **print ou numa imagem** já salva.
@@ -53,14 +53,32 @@
 | Modo de leitura | Automático | Automático, QR Code, Barras |
 
 ## 7. Critérios de aceite
-- [ ] Chrome no Windows (sem `BarcodeDetector`) lê QR pela câmera e por imagem.
-- [ ] Um QR claro sobre fundo escuro é lido.
-- [ ] Um EAN-13 fotografado é lido no modo Barras.
-- [ ] Um Pix adulterado mostra "CRC inválido".
-- [ ] Um Pix dinâmico não exibe a URL e mostra o aviso de privacidade.
-- [ ] Imagem sem código mostra "Nenhum … encontrado na imagem." e esconde o resultado anterior.
-- [ ] `tests/decode.test.ts` e `tests/barcode.test.ts` passam.
+| ID | Requisito | Critério | Verificação |
+|---|---|---|---|
+| AC-LER-F01.1 | LER-F01, LER-N06 | Quando a câmera lê um código, o app deve mostrar o resultado e desligar a câmera. | manual |
+| AC-LER-F01.2 | LER-F01, LER-N02 | No Chrome do Windows (sem `BarcodeDetector`), a câmera deve ler um QR. | manual |
+| AC-LER-F02.1 | LER-F02, LER-N02 | No Chrome do Windows, um QR deve ser lido a partir de uma imagem. | manual |
+| AC-LER-F02.2 | LER-F02 | Dada uma imagem sem código, o app deve mostrar "Nenhum … encontrado na imagem." e esconder o resultado anterior. | `barcode.test.ts` (imagem em branco) + manual (mensagem) |
+| AC-LER-F02.3 | LER-F02 | Um QR claro sobre fundo escuro deve ser lido. | manual |
+| AC-LER-F03.1 | LER-F03 | No modo "só QR", um código de barras não deve ser aceito; no modo "só Barras", um QR não deve ser aceito. | manual |
+| AC-LER-F04.1 | LER-F04 | No modo Barras, um EAN-13 fotografado deve ser lido. | manual (`barcode.test.ts` cobre Code 39) |
+| AC-LER-F05.1 | LER-F05 | Para cada tipo listado, `parseDecoded` deve classificar o texto e extrair os campos. | `decode.test.ts` |
+| AC-LER-F06.1 | LER-F06 | Para cada tipo, o cartão de resultado deve mostrar as ações da tabela de UI do [DESIGN-004](../design/004-leitura.md). | manual |
+| AC-LER-F07.1 | LER-F07 | Dado um Pix válido, o app deve mostrar tipo, recebedor, chave, valor e cidade. | `decode.test.ts` |
+| AC-LER-F07.2 | LER-F07 | Dado um Pix adulterado, o app deve mostrar "CRC inválido". | `decode.test.ts` |
+| AC-LER-F08.1 | LER-F08 | Para qualquer tipo, "Copiar" deve colocar o texto bruto na área de transferência. | manual |
+| AC-LER-N03.1 | LER-N03 | Offline, após a primeira visita, um código de barras deve ser lido por imagem. | manual |
+| AC-LER-N04.1 | LER-N04 | Com a câmera ligada, a interface deve continuar respondendo ao toque. | manual |
+| AC-LER-N05.1 | LER-N05, PRV-F04 | Dado um Pix dinâmico, a URL não deve ser exibida nem acessada, e o aviso de privacidade deve aparecer. | `decode.test.ts` + manual (DevTools) |
+| AC-LER-N06.1 | LER-N06 | Quando a pessoa para a câmera ou sai da aba, a câmera deve ser liberada (o indicador do sistema apaga). | manual |
 
-## 8. Questões em aberto
+## 8. Fora de escopo
+- Ler vários códigos de uma mesma imagem (sempre o primeiro).
+- Histórico de leituras.
+- Pagar um Pix ou acessar a URL de cobrança.
+- Análise de links suspeitos por serviço externo (ver Questões em aberto).
+- Ler códigos a partir de PDF ou vídeo.
+
+## 9. Questões em aberto
 - **Alerta de link suspeito** (domínio parecido com banco, encurtador)? Provisório: não; só com regras locais, sem serviço externo.
 - **Toast "QR Code lido!"** aparece também para código de barras. Provisório: manter.

@@ -18,6 +18,7 @@ const ASSETS = [
   ...PAGES,
   // URLs exatas pedidas pelas páginas (o build injeta o hash do conteúdo).
   '/app.js?v=__ASSET_HASH__',
+  '/phone.js?v=__ASSET_HASH__',
   '/app.css?v=__ASSET_HASH__',
   '/manifest.webmanifest',
   '/icon.svg',
